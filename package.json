@@ -1,0 +1,19 @@
+{
+  "name": "iterate-js",
+  "version": "1.0.0",
+  "description": "Collection of data processing experimentations designed for aurelia/node.js and brings in some dearly missed C# features like '{0}'.format('value'). Avoid using [BETA] tagged items.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "js",
+    "filter",
+    "map",
+    "each",
+    "iterator",
+    "C#"
+  ],
+  "author": "Malexion",
+  "license": "ISC"
+}
