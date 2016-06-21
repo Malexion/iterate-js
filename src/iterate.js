@@ -394,7 +394,7 @@ var __ = new function () {
         }
         return retVal;
     };
-    me.map = function (obj, func, e) {
+    me.map = function (obj, func, options) {
         /// <summary>Attempts to map the respective array or object to an array or object given the event parameter you can change the build object to an object, default is building an array.
         /// Ex: __.map([...], (v, k) => ({ value: v, key: k }), { build: {} }); will map an array to an object.</summary>
         /// <param type="Iterable" name="obj">The item to iterate over, works on objects, arrays, argumates and anything that can iterate.</param>
@@ -402,15 +402,14 @@ var __ = new function () {
         /// If it returns nothing than the map fills with undefined.</param>
         /// <param type="Object(Optional)" name="e">Event param for loop customization like pushing multiple into the return object at once or skipping the current iteration or stopping the loop.</param>
         /// <returns type="Array/Object">Returns the mapped array or object.</returns>
-        var event = me.flow(e).def().update({ stop: false, skip: false, pushMultiple: false, build: [] }).value();
-        var ret = event.build;
-        var isArray = me.is.array(ret);
-        var isObject = me.is.object(ret);
+        var event = me.flow(options).def().update({ stop: false, skip: false, pushMultiple: false, build: [] }).value();
+        var isArray = me.is.array(event.build);
+        var isObject = me.is.object(event.build);
         var key = me.is.function(func) ? func : function (v) {
             return v;
         };
         var add = function add(value) {
-            if (isArray) ret.push(value);else if (isObject) ret[value.key] = value.value;
+            if (isArray) event.build.push(value);else if (isObject) event.build[value.key] = value.value;
         };
         me.all(obj, function (x, y, e) {
             var value = key(x, y, event);
@@ -424,7 +423,7 @@ var __ = new function () {
             }
             if (event.stop) e.stop = true;
         });
-        return ret;
+        return event.build;
     };
     me.move = function (obj, key1, key2) {
         /// <summary>Attempts to move key value pair to target key value pair, uses internal methods on array objects.</summary>
