@@ -48,9 +48,6 @@ String.prototype.firstWord = function () {
 };
 
 var __ = new function () {
-    var _this = this,
-        _arguments = arguments;
-
     var map = new WeakMap();
     var me = this;
     // Constant Containers
@@ -90,11 +87,31 @@ var __ = new function () {
         /// <param type="Iterable" name="obj">The item to iterate over, works on objects, arrays, argumates and anything that can iterate.</param>
         /// <param type="Function" name="func">The function called each iteration, passed (value, key, event).</param>
         /// <param type="Bool(Optional)" name="all">The optional bool to toggle off the hasOwnProperty check, note that it will still work on arrays and arguments regardless.</param>
-        var event = { stop: false };
-        var getAll = all === true;
-        for (var val in obj) {
-            if (all || obj.hasOwnProperty(val)) func(obj[val], val, event);
-            if (event.stop) break;
+        var event = { stop: false, skip: false },
+            getAll = (all === true);
+        if(me.is.array(obj)) {
+            var length = obj.length;
+            for(var i = 0; i < length; i++) {
+                func(obj[i], i, event);
+                if(event.stop) break;
+                if(event.skip) { event.skip = false; continue; }
+            }
+        } else if(me.is.number(obj)) {
+            var count = 0,
+                target = Math.abs(obj);
+            while(count < target) {
+                count++;
+                func(count, target, event);
+                if(event.stop) break;
+                if(event.skip) { event.skip = false; continue; }
+            }
+        } else {
+            for (var val in obj) {
+                if (all || obj.hasOwnProperty(val)) 
+                    func(obj[val], val, event);
+                if(event.stop) break;
+                if(event.skip) { event.skip = false; continue; }
+            }
         }
     };
     me.call = function (obj, args, methodChain) {
@@ -163,8 +180,8 @@ var __ = new function () {
         time || (time = 250);
         var timer = null;
         return function () {
-            var context = _this,
-                args = _arguments;
+            var context = this,
+                args = arguments;
             clearTimeout(timer);
             timer = setTimeout(function () {
                 func.apply(context, args);
@@ -291,11 +308,11 @@ var __ = new function () {
         /// <param type="Bool(Optional)" name="deep">If true fuse will enter deep copy mode and recursively iterate through arrays and objects.
         /// There is no recursive limit so be careful about object loops.</param>
         /// <returns type="Object">Returns obj1 after the resulting merge with obj2.</returns>
-        var deepMode = deep != undefined && deep == true;
+        var deepMode = deep || false;
         me.all(obj2, function (object, key, all) {
-            if (me.is.object(object) && obj1[key] != null && obj1[key] != undefined && obj1[key]._identifier == 'Config Object') obj1[key].update(object, true);else if (me.is.object(object) && object._identifier == 'Replace Object') obj1[key] = object.content();else {
+            if (me.is.object(object) && me.is.set(obj1[key]) && obj1[key]._identifier == 'Config Object') obj1[key].update(object, true);else if (me.is.object(object) && object._identifier == 'Replace Object') obj1[key] = object.content();else {
                 if (deepMode && (me.is.object(object) || me.is.array(object))) {
-                    if (obj1[key] == null && obj1[key] == undefined) {
+                    if (!me.is.set(obj1[key])) {
                         if (me.is.object(object)) obj1[key] = {};else if (me.is.array(object)) obj1[key] = [];
                     }
                     me.fuse(obj1[key], object, true);
@@ -324,7 +341,7 @@ var __ = new function () {
         me.all(obj, function (v) {
             value = key(v);
             if (me.flow(value).set().eval(function (x) {
-                return me.is.string(x.value) || me.is.numeric(x.value);
+                return me.is.string(x.value) || me.is.number(x.value);
             }).result) {
                 me.flow(retVal[value]).set().isTrue(function () {
                     retVal[value].push(v);
@@ -566,9 +583,9 @@ var __ = new function () {
         time || (time = 250);
         var last, timer;
         return function () {
-            var context = _this,
+            var context = this,
                 now = +new Date(),
-                args = _arguments;
+                args = arguments;
 
             if (last && now < last + time) {
                 clearTimeout(timer);
@@ -620,7 +637,7 @@ var __ = new function () {
         this.string = function (object) {
             return me.is.sameType(object, me.i.string);
         };
-        this.numeric = function (object) {
+        this.number = function (object) {
             return me.is.sameType(object, me.i.integer);
         };
     }();

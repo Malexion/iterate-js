@@ -1,6 +1,11 @@
 var __ = require('./dist/iterate.js');
 
-
+console.log(__.fuse({
+	fish: [ 'foo', 'bar' ],
+	peas: 'carrots'
+}, {
+	fish: [ 'fish' ]
+}, true));
 
 // console.log('Stopwatch Test');
 
