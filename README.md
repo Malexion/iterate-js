@@ -122,8 +122,8 @@ Most valuable functions
   Generates a unique id.
   - `seperator:[String]`
     String seperator between number sets, default is '-'.
-  - `track:[Boolean]`
-    Boolean to indicate storing guid to ensure it is unique.
+  - `track:[String]`
+    Unique string for the subgroup of guids to track.
 
 - `__.map(obj, func, e)`
 

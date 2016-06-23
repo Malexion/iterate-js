@@ -87,14 +87,13 @@ var __ = new function () {
         /// <param type="Iterable" name="obj">The item to iterate over, works on objects, arrays, argumates and anything that can iterate.</param>
         /// <param type="Function" name="func">The function called each iteration, passed (value, key, event).</param>
         /// <param type="Bool(Optional)" name="all">The optional bool to toggle off the hasOwnProperty check, note that it will still work on arrays and arguments regardless.</param>
-        var event = { stop: false, skip: false },
+        var event = { stop: false },
             getAll = (all === true);
         if(me.is.array(obj)) {
             var length = obj.length;
             for(var i = 0; i < length; i++) {
                 func(obj[i], i, event);
                 if(event.stop) break;
-                if(event.skip) { event.skip = false; continue; }
             }
         } else if(me.is.number(obj)) {
             var count = 0,
@@ -103,14 +102,12 @@ var __ = new function () {
                 count++;
                 func(count, target, event);
                 if(event.stop) break;
-                if(event.skip) { event.skip = false; continue; }
             }
         } else {
             for (var val in obj) {
                 if (all || obj.hasOwnProperty(val)) 
                     func(obj[val], val, event);
                 if(event.stop) break;
-                if(event.skip) { event.skip = false; continue; }
             }
         }
     };
@@ -282,8 +279,9 @@ var __ = new function () {
             var flag = null;
             ret = me.filter(obj, function (v) {
                 flag = true;
-                me.all(req, function (value, prop) {
-                    if (v[prop] != value) flag = false;
+                me.all(func, function (value, prop) {
+                    if (v[prop] != value) 
+                        flag = false;
                 });
                 return flag;
             });
@@ -297,7 +295,10 @@ var __ = new function () {
         var options = __.flow(params).def().update(me.i.formatOptions()).value(); // Types: N, S
         var temp = me.formats[options.type.toLowerCase()];
         var retVal = '';
-        if (__.is.function(temp)) retVal = temp(options);else retVal = options.value;
+        if (__.is.function(temp)) 
+            retVal = temp(options);
+        else 
+            retVal = options.value;
         return retVal;
     };
     me.fuse = function (obj1, obj2, deep, all) {
@@ -334,20 +335,16 @@ var __ = new function () {
         /// if undefined it will just return the iterated object.</param>
         /// <returns type="Object">Returns an object with properties defining the groups and objects that match in arrays within those groups.</returns>
         var key = me.is.function(func) ? func : function (v) {
-            return me.prop(v, func);
-        },
+                return me.prop(v, func);
+            },
             retVal = {},
             value = null;
         me.all(obj, function (v) {
             value = key(v);
-            if (me.flow(value).set().eval(function (x) {
-                return me.is.string(x.value) || me.is.number(x.value);
-            }).result) {
-                me.flow(retVal[value]).set().isTrue(function () {
-                    retVal[value].push(v);
-                }).isFalse(function () {
-                    retVal[value] = [v];
-                });
+            if (me.flow(value).set().eval(function (x) { return me.is.string(x.value) || me.is.number(x.value); }).result) {
+                me.flow(retVal[value]).set()
+                .isTrue(function () { retVal[value].push(v); })
+                .isFalse(function () { retVal[value] = [v]; });
             }
         });
         return retVal;
@@ -359,7 +356,12 @@ var __ = new function () {
         var sep = me.i.setConditions(seperator) ? seperator : '-';
         var guid = me.math.r16() + me.math.r16() + sep + me.math.r16() + sep + me.math.r16() + sep + me.math.r16() + sep + me.math.r16() + me.math.r16() + me.math.r16();
         if (track) {
-            if (me.guidMap[guid]) return me.guid(seperator, track);else me.guidMap[guid] = true;
+            if (me.guidMap[track] && me.guidMap[track][guid]) 
+                return me.guid(seperator, track);
+            else {
+                me.guidMap[track] = {};
+                me.guidMap[track][guid] = true;
+            }
         }
         return guid;
     };
@@ -426,7 +428,10 @@ var __ = new function () {
             return v;
         };
         var add = function add(value) {
-            if (isArray) event.build.push(value);else if (isObject) event.build[value.key] = value.value;
+            if (isArray) 
+                event.build.push(value);
+            else if (isObject) 
+                event.build[value.key] = value.value;
         };
         me.all(obj, function (x, y, e) {
             var value = key(x, y, event);
@@ -448,7 +453,9 @@ var __ = new function () {
         /// <param type="String/Int" name="key1">The source key of the property to be moved.</param>
         /// <param type="String/Int" name="key2">The target key of the property to be moved.</param>
         /// <returns type="Array/Object">Returns the array or object passed in.</returns>
-        if (me.is.array(obj)) obj.splice(key2, 0, obj.splice(key1, 1)[0]);else {
+        if (me.is.array(obj)) 
+            obj.splice(key2, 0, obj.splice(key1, 1)[0]);
+        else {
             obj[key2] = obj[key1];
             delete obj[key1];
         }
@@ -498,6 +505,14 @@ var __ = new function () {
         }
         return obj;
     };
+    me.removeAt = function(obj, key) {
+        if (me.is.array(obj)) {
+            if (key > -1) 
+                obj.splice(key, 1);
+        } else if (me.is.object(obj))
+            delete obj[key];
+        return obj;
+    };
     me.search = function (obj, func, options) {
         /// <summary>Attempts to search the first param for the result in the most optimized fashion as the following pairs show:
         /// (array, function), (array, value), (object, function), (object, value).</summary>
@@ -505,28 +520,27 @@ var __ = new function () {
         /// <param type="Function/Value" name="func">Function passed (value, key) need to return true/false, or raw value to search for.</param>
         /// <returns type="Value">If the resulting conditions are met it will return the value, otherwise null.</returns>
         var ret = null,
-            opt = me.flow(options).set().update({ retval: null, all: false, getKey: false }).value();
+            opt = me.flow(options).set().update({ default: null, all: false, getKey: false }).value();
         if (me.is.function(func)) {
             me.all(obj, function (x, y, e) {
                 if (func(x, y)) {
-                    if (opt.getKey) ret = y;else ret = x;
+                    ret = (opt.getKey) ? y : x;
                     e.stop = true;
                 }
             }, opt.all);
         } else if (me.is.array(obj)) {
             var idx = obj.indexOf(func);
-            if (idx > -1) {
-                if (opt.getKey) ret = idx;else ret = obj[idx];
-            }
+            if (idx > -1) 
+                ret = (opt.getKey) ? idx : obj[idx];
         } else if (me.is.object(obj)) {
             me.all(obj, function (x, y, e) {
                 if (x == func) {
-                    if (opt.getKey) ret = y;else ret = x;
+                    ret = (opt.getKey) ? y : x;
                     e.stop = true;
                 }
             }, opt.all);
         }
-        return ret == null ? opt.retval : ret;
+        return ret == null ? opt.default : ret;
     };
     me.sort = function (array, options) {
         /// <summary>Sort an array of values given options { dir: 'asc', key: v => v } both are optional, with the first giving direction and the second getting
@@ -573,10 +587,9 @@ var __ = new function () {
         /// <param type="Value" name="def">The default value returned if nothing else matches.</param>
         /// <returns type="Value">The value returned from the hash, or if no match is found the default is returned.</returns>
         var retval = hash[value];
-        me.flow(retval).def().isFalse(function () {
-            retval = def;
-        });
-        if (me.is.function(retval)) retval = retval(value);
+        me.flow(retval).def().isFalse(function () { retval = def; });
+        if (me.is.function(retval)) 
+            retval = retval(value);
         return retval;
     };
     me.throttle = function (func, time) {
@@ -655,61 +668,59 @@ var __ = new function () {
                 return a - b;
             });
             var half = Math.floor(obj.length / 2);
-            if (obj.length % 2) return obj[half];else return (obj[half - 1] + obj[half]) / 2.0;
+            if (obj.length % 2) 
+                return obj[half];
+            else 
+                return (obj[half - 1] + obj[half]) / 2.0;
         };
         this.sum = function (values, func) {
             var sum = 0;
-            me.all(values, function (x) {
-                if (func) sum += func(x);else sum += x;
-            });
+            me.all(values, function (x) { sum += (func) ? func(x) : x; });
             return sum;
         };
         this.average = function (values, func) {
             var sum = me.math.sum(values, func);
-            if (sum > 0 || sum < 0) return sum / values.length;
+            if (sum > 0 || sum < 0) 
+                return sum / values.length;
             return 0;
         };
         this.max = function (values, func) {
-            if (values.length > 0) {
-                var ret = values[0];
-                for (var val in values) {
-                    if (func == undefined) {
-                        if (values[val] > ret) ret = values[val];
-                    } else {
-                        var temp = func(values[val]);
-                        if (temp > ret) ret = temp;
-                    }
+            var ret = null;
+            me.all(values, function(x) {
+                if(ret == null)
+                    ret = x;
+                if(func) {
+                    if (values[x] > ret) 
+                        ret = values[x];
+                } else {
+                    var temp = func(values[x]);
+                    if (temp > ret) 
+                        ret = temp;
                 }
-                return ret;
-            }
-            return null;
+            });
+            return ret;
         };
         this.min = function (values, func) {
-            if (values.length > 0) {
-                var ret = values[0];
-                for (var val in values) {
-                    if (func == undefined) {
-                        if (values[val] < ret) ret = values[val];
-                    } else {
-                        var temp = func(values[val]);
-                        if (temp < ret) ret = temp;
-                    }
+            var ret = null;
+            me.all(values, function(x) {
+                if(ret == null)
+                    ret = x;
+                if(func) {
+                    if (values[x] < ret) 
+                        ret = values[x];
+                } else {
+                    var temp = func(values[x]);
+                    if (temp < ret) 
+                        ret = temp;
                 }
-                return ret;
-            }
-            return null;
+            });
+            return ret;
         };
         this.percentages = function (values, func) {
-            var retVal = [];
             var total = me.math.sum(values, func);
-            if (total != 0) {
-                for (var val in values) {
-                    var value = 0;
-                    if (func == undefined) value = values[val];else value = func(values[val]);
-                    retVal.push(value / total);
-                }
-            }
-            return retVal;
+            return me.map(values, function(x, y) {
+                return (total != 0) ? (((func) ? func(x) : x) / total) : 0;
+            });
         };
     }();
     me.render = new function () {
