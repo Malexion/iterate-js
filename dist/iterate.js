@@ -1404,5 +1404,9 @@
         Dictionary: Dictionary
     };
 
-    if (typeof module !== 'undefined') module.exports = __;else if (window) window.__ = __;
+    var w = window || null;
+    if (typeof module !== 'undefined' && __.prop(w, 'module') !== module) {
+        console.log('Exports');
+        module.exports = __;
+    } else if (__.is.set(w)) window.__ = window.iterate = __;
 })();
