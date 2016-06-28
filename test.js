@@ -1,5 +1,15 @@
 var __ = require('./dist/iterate.js');
 
+//console.log(__);
+
+// console.log('Match Test');
+
+// console.log(__.match({}, []));
+// console.log(__.match([ 2, 3, 4 ], [ "2", "3", "4" ]));
+// console.log(__.match([ 2, 3, 4 ], [ "2", "3", "4" ], { explicit: true }));
+// console.log(__.match({ array: [ 2, 3, 4 ] }, { array: [ "2", "3", "4" ] }));
+// console.log(__.match({ array: [ 2, 3, 4 ] }, { array: [ "2", "3", "4" ] }, { explicit: true }));
+
 // console.log('Stopwatch Test');
 
 // var watch = new __.lib.StopWatch();
