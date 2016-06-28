@@ -1437,5 +1437,5 @@
     if( typeof module !== 'undefined' )
         module.exports = __;
     else if(window)
-      window.__ = window.iterate = __;
+        window.__ = window.iterate = __;
 })();
