@@ -1435,7 +1435,7 @@
     };
 
     if( typeof module !== 'undefined' )
-        module.exports = __;
+        module.exports = ;
     else if(window)
-      window.__ = __;
+      window.__ = window.iterate = __;
 })();
