@@ -217,7 +217,7 @@
             /// <param type="Value" name="obj">Value to be checked and evaluated.</param>
             /// <returns type="ConditionChain">A chain object, which contains many different functions, to get the boolean result simply call [chain].result. For more see the ConditionChain class.</returns>
 
-            return new ConditionChain(obj);
+            return new ConditionChain({ initialValue: obj, value: obj });
         };
         me.first = function (obj, key, n) {
             /// <summary>Attempts to iterate over the iterable object and get the first object, if key is true then it will return the first objects key,
@@ -794,22 +794,43 @@
         }();
     })();
 
+    // Wrapper for weakmap for simplistic private variable management
+    var PrivateStore = __.class(function() {
+        this.map = new WeakMap();
+    },{
+        context: function(context, func) {
+            return func(this.map.get(context));
+        },
+        bind: function(context, data) {
+            this.map.set(context, (__.is.object(data)) ? data : {});
+        },
+        get: function(context, path) {
+            return __.prop(this.map.get(context), path);
+        },
+        set: function(context, path, value) {
+            var paths = path.split('.');
+            if(paths.length > 0) {
+                var fragment = paths.pop(),
+                    obj = this.map.get(context);
+                __.all(paths, function(x) {
+                    if(!__.is.set(obj[x]))
+                        obj[x] = {};
+                    obj = obj[x];
+                });
+                obj[fragment] = value;
+            }
+        }
+    });
+
     // [Testing] Chaining Conditions/Actions by a boolean evaluation
     var ConditionChain = __.class(function (value) {
-        this.details = {
+        this.details = __.fuse({
             initialValue: value,
             value: value,
-            status: true,
-            actions: []
-        };
-        var self = this;
-        var addAction = function addAction(type, method, result) {
-            self.details.actions.push({ type: type, result: result });
-        };
+            status: true
+        }, value);
     }, {
-        result: { get: function get() {
-                return this.details.status;
-            } },
+        result: { get: function() { return this.details.status; } },
         all: function all(func) {
             var type = __.getType(this.details.value);
             if (type == __.getType(__.i.array) || type == __.getType(__.i.obj) || type == __.getType(__.i.args) || type == __.getType(__.i.string)) __.all(this.details.value, func);
@@ -1109,33 +1130,6 @@
         }
     });
 
-    var PrivateStore = __.class(function() {
-        this.map = new WeakMap();
-    },{
-        context: function(context, func) {
-            return func(this.map.get(context));
-        },
-        bind: function(context, data) {
-            this.map.set(context, (__.is.object(data)) ? data : {});
-        },
-        get: function(context, path) {
-            return __.prop(this.map.get(context), path);
-        },
-        set: function(context, path, value) {
-            var paths = path.split('.');
-            if(paths.length > 0) {
-                var fragment = paths.pop(),
-                    obj = this.map.get(context);
-                __.all(paths, function(x) {
-                    if(!__.is.set(obj[x]))
-                        obj[x] = {};
-                    obj = obj[x];
-                });
-                obj[fragment] = value;
-            }
-        }
-    });
-
     // Configuration object with layering abilities that make extensive configs easy
     var Config = __.class(function(options) {
         this._identifier = 'Config Object';
@@ -1171,6 +1165,62 @@
                 this._registry[key] = func;
             else
                 delete this._registry[key];
+        }
+    });
+
+    // Simple little event manager
+    var EventManager = __.class(function(events) {
+        this._identifier = 'Config Object';
+        this.update(events);
+    }, {
+        add: function(name, func) {
+            var eventName = name.toLowerCase();
+            if(!__.is.set(this[eventName]))
+                this[eventName] = [];
+            if(__.is.array(func))
+                this[eventName] = this[eventName].concat(func);
+            else
+                this[eventName].push(func);
+        },
+        delegate: function(name, data, timeout) {
+            var eventName = name.toLowerCase();
+            var events = this[eventName];
+            if(__.is.array(events)) {
+                var data = { event: eventName, before: true, after: false, isCancelled: false, data: data };
+                __.all(events, function(func) { setTimeout(function() { func(data); }, (timeout) ? timeout : 10); });
+                return function() {
+                    data.before = false;
+                    data.after = true;
+                    if(!data.isCancelled)
+                        __.all(events, function(func) { setTimeout(function() { func(data); }, (timeout) ? timeout : 10); });
+                };
+            }
+        },
+        remove: function(name, func) {
+            var eventName = name.toLowerCase();
+            if(!__.is.set(func))
+                delete this[eventName];
+            else
+                this[eventName] = __.remove(this[eventName], func);
+        },
+        trigger: function(name, data) {
+            var eventName = name.toLowerCase();
+            var events = this[eventName];
+            if(__.is.array(events)) {
+                var data = { event: eventName, before: true, after: false, isCancelled: false, data: data };
+                __.all(events, function(func) { func(data); });
+                return function() {
+                    data.before = false;
+                    data.after = true;
+                    if(!data.isCancelled)
+                        __.all(events, function(func) { func(data); });
+                };
+            }
+        },
+        update: function(options) {
+            var self = this;
+            if(__.is.object(options))
+                __.all(options, function(x, y) { self.add(y, x); });
         }
     });
 
@@ -1458,6 +1508,7 @@
         Overwrite: Overwrite,
         PrivateStore: PrivateStore,
         Config: Config,
+        EventManager: EventManager,
         StopWatch: StopWatch,
         Enumerable: Enumerable,
         List: List,

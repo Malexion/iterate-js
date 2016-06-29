@@ -2,6 +2,25 @@ var __ = require('./dist/iterate.js');
 
 //console.log(__);
 
+// EventManager Test
+
+// var events = new __.lib.EventManager();
+// var func1 = function() { console.log('Function 1'); };
+// var func2 = function() { console.log('Function 2'); };
+
+// events.add('OnInit', func1);
+// events.add('OnInit', func2);
+
+// var complete = events.trigger('OnInit');
+
+// events.remove('OnInit', func1);
+
+// complete = events.trigger('OnInit');
+
+// events.remove('OnInit', func2);
+
+// complete = events.trigger('OnInit');
+
 // PrivateStore Test
 
 // var store = new __.lib.PrivateStore();
