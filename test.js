@@ -1,6 +1,12 @@
 var __ = require('./dist/iterate.js');
 
-//console.log(__);
+console.log(__);
+
+// Type Testing
+
+// console.log(__.is.number(9));
+// console.log(__.is.number(0));
+// console.log(__.is.nan(NaN));
 
 // EventManager Test
 

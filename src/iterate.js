@@ -52,34 +52,41 @@
     var __ = new (function () {
         var me = this;
         // Constant Containers
-        me.i = new function () {
-            this.obj = {};
-            this.array = [];
-            this.function = function () {};
-            this.string = "ABC";
-            this.integer = 1;
-            this.bool = true;
-            this.date = new Date();
-            this.args = arguments;
-            this.null = null;
-            this.undefined = undefined;
-            this.nan = NaN;
-            this.setConditions = function (object) {
+        me.i = {
+            obj: {},
+            array: [],
+            function: function() {},
+            string: 'ABC',
+            integer: 1,
+            bool: true,
+            date: new Date(),
+            args: arguments,
+            null: null,
+            undefined: undefined,
+            nan: NaN,
+            setConditions: function (object) {
                 return object != null && object != undefined && object != NaN;
-            };
-            this.defaultConditions = function (object) {
+            },
+            defaultConditions: function (object) {
                 return Boolean(object);
-            };
-            this.formatOptions = function () {
+            },
+            formatOptions: function () {
                 return { value: 0, decimal: 2, digits: -1, dynamic: false, form: '{0}', delim: '', type: '' };
-            };
-        }();
-        me.formats = new function () {
-            this.padleft = function (params) {
-                var temp = params.value.toString();
-                if (temp.length < params.places) return me.formats.padleft({ value: params.delim + temp, places: params.places, delim: params.delim });else return temp;
-            };
-        }();
+            }
+        };
+        me.types = {
+            obj: 'Object',
+            array: 'Array',
+            function: 'Function',
+            string: 'String',
+            integer: 'Number',
+            bool: 'Boolean',
+            date: 'Date',
+            args: 'Arguments',
+            null: 'Null',
+            undefined: 'Undefined',
+            nan: 'Number'
+        };
         me.guidMap = {};
 
         // Base Functions
@@ -637,54 +644,75 @@
         };
 
         // Function Containers
-        me.is = new function () {
-            this.def = function (value) {
+        me.formats = {
+            padleft: function(params) {
+                var temp = params.value.toString();
+                if (temp.length < params.places) 
+                    return me.formats.padleft({ value: params.delim + temp, places: params.places, delim: params.delim });
+                else 
+                    return temp;
+            }
+        };
+        me.is = {
+            def: function (value) {
                 /// <summary>Checks the value against the defined conditions which converts it to a boolean with result = Boolean(value); which means it will fail on empty strings, zeros and more.</summary>
                 /// <param type="Value" name="value">Value to be checked.</param>
                 /// <returns type="ConditionChain">A chain object, which contains many different functions, to get the boolean result simply call [chain].result. For more see the ConditionChain class.</returns>
                 var ret = me.i.defaultConditions(value);
                 return ret;
-            };
-            this.set = function (value) {
+            },
+            set: function (value) {
                 /// <summary>Checks the value against the set conditions which checks it against undefined, null and NaN.</summary>
                 /// <param type="Value" name="value">Value to be checked.</param>
                 /// <returns type="ConditionChain">A chain object, which contains many different functions, to get the boolean result simply call [chain].result. For more see the ConditionChain class.</returns>
                 var ret = me.i.setConditions(value);
                 return ret;
-            };
-            this.sameType = function (var1, var2) {
+            },
+            sameType: function (var1, var2) {
                 return me.getType(var1) == me.getType(var2);
-            };
-            this.function = function (object) {
-                return me.is.sameType(object, me.i.function);
-            };
-            this.object = function (object) {
-                return me.is.sameType(object, me.i.obj);
-            };
-            this.array = function (object) {
-                return me.is.sameType(object, me.i.array);
-            };
-            this.args = function (object) {
-                return me.is.sameType(object, me.i.args);
-            };
-            this.boolean = function (object) {
-                return me.is.sameType(object, me.i.bool);
-            };
-            this.string = function (object) {
-                return me.is.sameType(object, me.i.string);
-            };
-            this.number = function (object) {
-                return me.is.sameType(object, me.i.integer);
-            };
-        }();
-        me.math = new function () {
-            this.r16 = function () {
+            },
+            function: function (object) {
+                return me.getType(object) == me.types.function;
+            },
+            object: function (object) {
+                return me.getType(object) == me.types.object;
+            },
+            array: function (object) {
+                return me.getType(object) == me.types.array;
+            },
+            args: function (object) {
+                return me.getType(object) == me.types.args;
+            },
+            bool: function (object) {
+                return me.getType(object) == me.types.bool;
+            },
+            string: function (object) {
+                return me.getType(object) == me.types.string;
+            },
+            number: function (object) {
+                return (me.getType(object) == me.types.integer) && !isNaN(object);
+            },
+            date: function(object) {
+                return me.getType(object) == me.types.date;
+            },
+            null: function(object) {
+                return me.getType(object) == me.types.null;
+            },
+            undefined: function(object) {
+                return me.getType(object) == me.types.undefined;
+            },
+            nan: function(object) {
+                return (me.getType(object) == me.types.integer) && isNaN(object);
+            }
+        };
+        me.math = {
+            r16: function () {
                 return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-            };
-            this.roundUpTo = function (value, step) {
+            },
+            roundUpTo: function (value, step) {
                 return Math.ceil(value / step) * step;
-            };
-            this.median = function (values, func) {
+            },
+            median: function (values, func) {
                 var obj = values;
                 if (func) obj = me.map(values, func);
                 obj.sort(function (a, b) {
@@ -695,19 +723,19 @@
                     return obj[half];
                 else 
                     return (obj[half - 1] + obj[half]) / 2.0;
-            };
-            this.sum = function (values, func) {
+            },
+            sum: function (values, func) {
                 var sum = 0;
                 me.all(values, function (x) { sum += (func) ? func(x) : x; });
                 return sum;
-            };
-            this.average = function (values, func) {
+            },
+            average: function (values, func) {
                 var sum = me.math.sum(values, func);
                 if (sum > 0 || sum < 0) 
                     return sum / values.length;
                 return 0;
-            };
-            this.max = function (values, func) {
+            },
+            max: function (values, func) {
                 var ret = null;
                 me.all(values, function(x) {
                     if(ret == null)
@@ -722,8 +750,8 @@
                     }
                 });
                 return ret;
-            };
-            this.min = function (values, func) {
+            },
+            min: function (values, func) {
                 var ret = null;
                 me.all(values, function(x) {
                     if(ret == null)
@@ -738,16 +766,16 @@
                     }
                 });
                 return ret;
-            };
-            this.percentages = function (values, func) {
+            },
+            percentages: function (values, func) {
                 var total = me.math.sum(values, func);
                 return me.map(values, function(x, y) {
                     return (total != 0) ? (((func) ? func(x) : x) / total) : 0;
                 });
-            };
-        }();
-        me.render = new function () {
-            this.blend = function (c0, c1, p) {
+            }
+        };
+        me.render = {
+            blend: function (c0, c1, p) {
                 /// <summary>Blends the second hex color into the first by a percentage</summary>
                 /// <param type="String" name="c0">Primary Hex string to be blended. Ex: '#FFFFFF'</param>
                 /// <param type="String" name="c1">Secondary Hex string to be blended into the first. Ex: '#000000'</param>
@@ -762,12 +790,12 @@
                     G2 = t >> 8 & 0x00FF,
                     B2 = t & 0x0000FF;
                 return "#" + (0x1000000 + (Math.round((R2 - R1) * p) + R1) * 0x10000 + (Math.round((G2 - G1) * p) + G1) * 0x100 + (Math.round((B2 - B1) * p) + B1)).toString(16).slice(1);
-            };
-            this.bytesToImageSrc = function (bytes, type) {
+            },
+            bytesToImageSrc: function (bytes, type) {
                 // el.src = __.render.bytesToImage( [ byteArrayFromServer ].join('') );
                 return "data:image/{0};base64,{1}".format(type ? type : 'png', bytes);
-            };
-            this.bytesToCanvas = function (bytes, type, canvas, coords) {
+            },
+            bytesToCanvas: function (bytes, type, canvas, coords) {
                 //var canvas = document.getElementById("myCanvas");
                 var ctx = canvas.getContext("2d");
 
@@ -790,8 +818,8 @@
                 img.onerror = function (stuff) {
                     console.log("Img Onerror:", stuff);
                 };
-            };
-        }();
+            }
+        };
     })();
 
     // Wrapper for weakmap for simplistic private variable management
@@ -833,38 +861,44 @@
         result: { get: function() { return this.details.status; } },
         all: function all(func) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj) || type == __.getType(__.i.args) || type == __.getType(__.i.string)) __.all(this.details.value, func);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) __.all(this.details.value, func);
             return this;
         },
         append: function append(value) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array)) this.details.value.push(value);else if (type == __.getType(__.i.string) && __.is.sameType(value, __.i.string)) this.details.value += value;
+            if (type == __.types.array) 
+                this.details.value.push(value);
+            else if (type == __.types.string && __.is.string(value)) 
+                this.details.value += value;
             return this;
         },
         appendTo: function appendTo(value) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array)) this.details.value.unshift(value);else if (type == __.getType(__.i.string) && __.is.sameType(value, __.i.string)) this.details.value = value + this.details.value;
+            if (type == __.types.array) 
+                this.details.value.unshift(value);
+            else if (type == __.types.string && __.is.string(value)) 
+                this.details.value = value + this.details.value;
             return this;
         },
         average: function average(func) {
-            if (__.is.sameType(this.details.value, __.i.array)) this.details.value = __.math.average(this.details.value, func);
+            if (__.is.array(this.details.value)) this.details.value = __.math.average(this.details.value, func);
             return this;
         },
         call: function call(args, chain) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj) || type == __.getType(__.i.args) || type == __.getType(__.i.string)) __.call(this.details.value, args, chain);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) __.call(this.details.value, args, chain);
             return this;
         },
         contains: function contains(func) {
             if (this.details.status) {
                 var type = __.getType(this.details.value);
-                if (type == __.getType(__.i.array) || type == __.getType(__.i.obj) || type == __.getType(__.i.args) || type == __.getType(__.i.string)) this.details.value = __.contains(this.details.value, func);
+                if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.contains(this.details.value, func);
             }
             return this;
         },
         count: function count(func) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj) || type == __.getType(__.i.args) || type == __.getType(__.i.string)) this.details.value = __.count(this.details.value);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.count(this.details.value);
             return this;
         },
         def: function def() {
@@ -885,12 +919,12 @@
         },
         filter: function filter(func) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj)) this.details.value = __.filter(this.details.value, func);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.filter(this.details.value, func);
             return this;
         },
         first: function first(func, n) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj)) this.details.value = __.first(this.details.value, func, n);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.first(this.details.value, func, n);
             return this;
         },
         getProperty: function getProperty(propChain) {
@@ -899,7 +933,7 @@
         },
         group: function group(func) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj)) this.details.value = __.group(this.details.value, func);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.group(this.details.value, func);
             return this;
         },
         isTrue: function isTrue(func) {
@@ -920,29 +954,29 @@
         },
         last: function last(func, n) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj)) this.details.value = __.last(this.details.value, func, n);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.last(this.details.value, func, n);
             return this;
         },
         map: function map(func, options) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj)) this.details.value = __.map(this.details.value, func, options);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.map(this.details.value, func, options);
             return this;
         },
         max: function max(func) {
-            if (__.is.sameType(this.details.value, __.i.array)) this.details.value = __.math.max(this.details.value, func);
+            if (__.is.array(this.details.value)) this.details.value = __.math.max(this.details.value, func);
             return this;
         },
         median: function median(func) {
-            if (__.is.sameType(this.details.value, __.i.array)) this.details.value = __.math.max(this.details.value, func);
+            if (__.is.array(this.details.value)) this.details.value = __.math.max(this.details.value, func);
             return this;
         },
         min: function min(func) {
-            if (__.is.sameType(this.details.value, __.i.array)) this.details.value = __.math.min(this.details.value, func);
+            if (__.is.array(this.details.value)) this.details.value = __.math.min(this.details.value, func);
             return this;
         },
         search: function search(func, options) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj) || type == __.getType(__.i.args) || type == __.getType(__.i.string)) this.details.value = __.search(this.details.value, func, options);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.search(this.details.value, func, options);
             return this;
         },
         set: function set() {
@@ -951,11 +985,11 @@
         },
         sort: function sort(options) {
             var type = __.getType(this.details.value);
-            if (type == __.getType(__.i.array) || type == __.getType(__.i.obj)) this.details.value = __.sort(this.details.value, options);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.sort(this.details.value, options);
             return this;
         },
         sum: function sum(func) {
-            if (__.is.sameType(this.details.value, __.i.array)) this.details.value = __.math.sum(this.details.value, func);
+            if (__.is.array(this.details.value)) this.details.value = __.math.sum(this.details.value, func);
             return this;
         },
         value: function value(def) {
@@ -1046,7 +1080,7 @@
         merge: function(style) {
             var self = this;
             if (style) {
-                if (__.is.sameType(style, __.i.string)) {
+                if (__.is.string(style)) {
                     var values = style.split(';');
                     __.all(values, function (p) {
                         if (p != "") {
@@ -1054,7 +1088,7 @@
                             self.i[a[0].trim()] = a[1].trim();
                         }
                     });
-                } else if (__.is.sameType(style, __.i.obj)) __.fuse(self.i, style);
+                } else if (__.is.object(style)) __.fuse(self.i, style);
             }
         },
         remove: function(key) {
@@ -1089,7 +1123,7 @@
         merge: function(style) {
             var self = this;
             if (style) {
-                if (__.is.sameType(style, __.i.string)) {
+                if (__.is.string(style)) {
                     var values = style.split(';');
                     __.all(values, function (p) {
                         if (p != "") {
@@ -1097,7 +1131,7 @@
                             self.i[a[0].trim()] = a[1].replace('"', '').trim();
                         }
                     });
-                } else if (__.is.sameType(style, __.i.obj)) {
+                } else if (__.is.object(style)) {
                     __.fuse(self.i, style);
                 }
             }

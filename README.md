@@ -189,6 +189,10 @@ Most valuable functions
 
   Config manager, with update functionality and update handler hooks.
 
+- `new __.lib.EventManager()`
+
+  Simple event manager, add/remove/trigger/delegate. Event names are stored as lowercase and each event can have multiple hooks into it.
+
 - `new __.lib.StopWatch()`
 
   Event based stopwatch, with start, stop, reset and a configurable tick time as well as an ontick event.
