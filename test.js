@@ -2,6 +2,57 @@ var __ = require('./dist/iterate.js');
 
 //console.log(__);
 
+// PrivateStore Test
+
+// var store = new __.lib.PrivateStore();
+
+// var Shape = __.class(function(type) {
+//     store.bind(this);
+//     store.context(this, function(private) {
+//         private.type = type;
+//         private.info = { points: 0 };
+//     });
+// }, {
+// 	type: { 
+// 		get: function() { 
+// 			return store.get(this, 'type'); 
+// 		}, 
+// 		set: function(value) { 
+// 			return store.set(this, 'type', value); 
+// 		} 
+// 	},
+// 	points: {
+// 		get: function() { 
+// 			return store.get(this, 'info.points'); 
+// 		}, 
+// 		set: function(value) { 
+// 			return store.set(this, 'info.points', value); 
+// 		} 
+// 	}
+// });
+
+// var s1 = new Shape('triangle');
+// var s2 = new Shape('square');
+
+// console.log(s1);
+// console.log(s2);
+
+// console.log(s1.type);
+// console.log(s2.type);
+
+// s2.type = 'Circle';
+
+// console.log(s1.type);
+// console.log(s2.type);
+
+// console.log(s1.points);
+// console.log(s2.points);
+
+// s1.points = 3;
+
+// console.log(s1.points);
+// console.log(s2.points);
+
 // console.log('Match Test');
 
 // console.log(__.match({}, []));

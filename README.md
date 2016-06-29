@@ -205,3 +205,35 @@ Most valuable functions
 
   Inherits Enumerable, basic object map with syntactic sugar.
 
+- `new __.lib.PrivateStore()`
+
+  Wrapper for weakmap with easy access points for your classes, see below.
+
+  ```javascript
+  var store = new __.lib.PrivateStore();
+
+  var Shape = __.class(function(type) {
+      store.bind(this); // bind to init store for new class
+      store.context(this, function(private) { // access all privates with store.context
+          private.type = type;
+          private.info = { points: 0 };
+      });
+  }, {
+    type: { 
+      get: function() { 
+        return store.get(this, 'type'); // Easy getter will follow the path chain to your property
+      }, 
+      set: function(value) { 
+        return store.set(this, 'type', value); // Easy setter will follow the path chain to set your property and init empty objects along the way if it has to
+      } 
+    },
+    points: {
+      get: function() { 
+        return store.get(this, 'info.points'); 
+      }, 
+      set: function(value) { 
+        return store.set(this, 'info.points', value); 
+      } 
+    }
+  });
+  ```

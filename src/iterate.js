@@ -48,6 +48,7 @@
         if (index > -1) return this.substring(0, index);
         return this;
     };
+
     var __ = new (function () {
         var me = this;
         // Constant Containers
@@ -482,17 +483,18 @@
             }
             return obj;
         };
-        me.prop = function (obj, path) {
+        me.prop = function (obj, path, value) {
             /// <summary>Searches an object using a property path and returns the resulting value.</summary>
             /// <param type="Object" name="obj">The item to be searched along the path chain.</param>
             /// <param type="String(Optional)" name="path">String based path to the object property. Ex: { item: { type: 1 } } with 'item' it will find { type: 1 } with 'item.type' it will find 1.</param>
             /// <returns type="Value">Value of the resulting property chain, will be undefined if the value at the end isn't there, or if the chain is cut short.</returns>
-            if (me.is.set(path) && me.is.set(obj)) {
+            if (me.is.set(path) && me.is.set(obj) && path != '') {
                 var current = obj,
                     paths = path.split('.');
                 me.all(paths, function (p, i, e) {
                     current = current[p];
-                    if (!me.is.set(current)) e.stop = true;
+                    if (!me.is.set(current)) 
+                        e.stop = true;
                 });
                 return current;
             } else return obj;
@@ -1107,6 +1109,33 @@
         }
     });
 
+    var PrivateStore = __.class(function() {
+        this.map = new WeakMap();
+    },{
+        context: function(context, func) {
+            return func(this.map.get(context));
+        },
+        bind: function(context, data) {
+            this.map.set(context, (__.is.object(data)) ? data : {});
+        },
+        get: function(context, path) {
+            return __.prop(this.map.get(context), path);
+        },
+        set: function(context, path, value) {
+            var paths = path.split('.');
+            if(paths.length > 0) {
+                var fragment = paths.pop(),
+                    obj = this.map.get(context);
+                __.all(paths, function(x) {
+                    if(!__.is.set(obj[x]))
+                        obj[x] = {};
+                    obj = obj[x];
+                });
+                obj[fragment] = value;
+            }
+        }
+    });
+
     // Configuration object with layering abilities that make extensive configs easy
     var Config = __.class(function(options) {
         this._identifier = 'Config Object';
@@ -1427,6 +1456,7 @@
         StyleParser: StyleParser,
         AttrParser: AttrParser,
         Overwrite: Overwrite,
+        PrivateStore: PrivateStore,
         Config: Config,
         StopWatch: StopWatch,
         Enumerable: Enumerable,
@@ -1436,6 +1466,6 @@
 
     if( typeof module !== 'undefined' )
         module.exports = __;
-    else if(window)
+    else if(typeof window !== 'undefined')
         window.__ = window.iterate = __;
 })();
