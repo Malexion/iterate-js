@@ -91,6 +91,14 @@ Most valuable functions
   - `func:[Object/Function]`
     Function passed the following in order: (value, key, optionsObject). Must return true if item is found.
 
+- `__.distinct(obj, func)`
+
+  Iterates over any iterable object to find distinct items.
+  - `obj:[Object]`
+    Item to be iterated over.
+  - `func:[Object/Function]`
+    Optional function passed the value of the iterated item. Must return a value to be checked against others (number/string prefered).
+
 - `__.filter(obj, func)`
 
   Iterates over any object or array and will return a filtered down version.
@@ -124,6 +132,16 @@ Most valuable functions
     String seperator between number sets, default is '-'.
   - `track:[String]`
     Unique string for the subgroup of guids to track.
+
+- `__.intersect(obj1, obj2, func)`
+
+  Returns an array of shared values between the two objects/arrays compared.
+  - `obj1:[Object/Array]`
+    Item to be iterated over.
+  - `obj2:[Object/Array]`
+    Item to be iterated over.
+  - `func:[Function]`
+    Optional function passed the value of the iterated item. Must return a value to be checked against others (number/string prefered).
 
 - `__.map(obj, func, e)`
 
