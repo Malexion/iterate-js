@@ -190,6 +190,20 @@
                 }, time);
             };
         };
+        me.distinct = function(obj, func) {
+            var index = [],
+                isArray = me.is.array(obj),
+                key = (func) ? func : function(x) { return x; };
+            return me.map(obj, function(x, y, z) {
+                var item = key(x);
+                if(index.indexOf(item) == -1) { // index of means only distinct check ints/strings
+                    index.push(item);
+                    return (isArray) ? x : { key: y, value: x };
+                } else
+                    z.skip = true;
+                console.log(index);
+            }, { build: (isArray) ? [] : {} });
+        };
         me.download = function (content, fileName, type) {
             /// <summary>Downloads a file from an array of strings given a name and type.</summary>
             /// <param type="Array" name="content">Array of strings joined together for the files content.</param>
@@ -371,6 +385,18 @@
             }
             return guid;
         };
+        me.intersect = function(obj1, obj2, func) {
+            // TODO return array/obj containing items that both share
+            var isArray = me.is.array(obj1);
+            var build = [];
+            var index1 = me.map(obj1, function(x, y) { return { value: y, key: (func) ? func(x) : x }; }, { build: {} });
+            var index2 = me.map(obj2, function(x, y) { return { value: y, key: (func) ? func(x) : x }; }, { build: {} });
+            me.all(index1, function(x, y) {
+                if(index2[y] != undefined)
+                    build.push(obj1[x]);
+            });
+            return build;
+        };
         me.last = function (obj, key, n) {
             /// <summary>Attempts to iterate over the iterable object and get the last object, if key is true then it will return the last objects key,
             /// if n greater than 1 or defined it will return that number of objects or an object with that number of properties.</summary>
@@ -430,9 +456,7 @@
             var event = me.flow(options).def().update({ stop: false, skip: false, pushMultiple: false, build: [] }).value();
             var isArray = me.is.array(event.build);
             var isObject = me.is.object(event.build);
-            var key = me.is.function(func) ? func : function (v) {
-                return v;
-            };
+            var key = me.is.function(func) ? func : function (v) { return v; };
             var add = function add(value) {
                 if (isArray) 
                     event.build.push(value);
@@ -441,15 +465,19 @@
             };
             me.all(obj, function (x, y, e) {
                 var value = key(x, y, event);
-                if (event.skip) event.skip = false;else {
+                if (event.skip) 
+                    event.skip = false;
+                else {
                     if (event.pushMultiple) {
                         me.all(value, function (v) {
                             return add(v);
                         });
                         event.pushMultiple = false;
-                    } else add(value);
+                    } else 
+                        add(value);
                 }
-                if (event.stop) e.stop = true;
+                if (event.stop) 
+                    e.stop = true;
             });
             return event.build;
         };
@@ -675,7 +703,7 @@
                 return me.getType(object) == me.types.function;
             },
             object: function (object) {
-                return me.getType(object) == me.types.object;
+                return me.getType(object) == me.types.obj;
             },
             array: function (object) {
                 return me.getType(object) == me.types.array;
@@ -1340,6 +1368,23 @@
         },
         each: function(func) {
             __.all(this, func);
+        },
+        toArray: function() {
+            var ret = [];
+            __.all(this, function (x, y) {
+                ret[y] = x;
+            });
+            return ret;
+        },
+        toList: function() {
+            return new List(this.toArray());
+        },
+        toDictionary: function() {
+            var dict = new Dictionary();
+            this.each(function(x, y) {
+                dict.add(y, x);
+            });
+            return dict;
         }
     });
 
@@ -1375,9 +1420,10 @@
             return self;
         },
         contains: function(func) {
-            if (__.is.function(func)) return __.contains(this, func);
+            if (__.is.function(func)) 
+                return __.contains(this, func);
             return __.contains(this, function (x) {
-                return x == item;
+                return x == func;
             });
         },
         count: {
@@ -1388,6 +1434,11 @@
                 var count = this.count;
                 if (count > value) this.removeRange(value - 1);
             }
+        },
+        distinct: function(func) {
+            var x = this.toArray();
+            x = __.distinct(x, func);
+            return new List(x);
         },
         indexOf: function(item) {
             return __.search(this, function (x) {
@@ -1480,6 +1531,13 @@
             }
             return this;
         },
+        search: function(func) {
+            if (__.is.function(func)) 
+                return __.search(this, func);
+            return __.search(this, function (x) {
+                return x == func;
+            });
+        },
         select: function(func) {
             var x = this.toArray();
             x = __.map(x, func);
@@ -1493,13 +1551,6 @@
                 return self[k] = x;
             });
             return this;
-        },
-        toArray: function() {
-            var ret = [];
-            __.all(this, function (x, y) {
-                ret[y] = x;
-            });
-            return ret;
         },
         where: function(func) {
             var x = this.toArray();
