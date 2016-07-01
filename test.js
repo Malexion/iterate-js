@@ -1,6 +1,6 @@
 var __ = require('./dist/iterate.js');
 
-//console.log(__);
+console.log(__);
 
 // Distinct Testing
 

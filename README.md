@@ -1,5 +1,9 @@
 # iterate-js
 
+## Description
+
+Adds to iterate-js-lite, methods: download, flow and the __.render.[...] section, along with many built in classes mostly experimental stuff will stay in here.
+
 ## Installation
 
 Install package with NPM and add it to your development dependencies:

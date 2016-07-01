@@ -1,1 +1,815 @@
-"use strict";!function(){String.prototype.replaceAll=function(t,e,n){return this.replace(new RegExp(t.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g,"\\$&"),n?"gi":"g"),"string"==typeof e?e.replace(/\$/g,"$$$$"):e)},String.prototype.replaceWhile=function(t,e,n,i){for(var r=this.replaceAll(t,e,i),s=1e4;n(r)&&s--;)r=r.replaceAll(t,e,i);return r},String.prototype.format=function(){for(var t=this,e=0;e<arguments.length;e++){var n=new RegExp("\\{"+e+"\\}","gi");t=t.replace(n,arguments[e])}return t},String.prototype.contains=function(t,e){return e?this.toLowerCase().indexOf(t.toLowerCase())>-1:this.indexOf(t)>-1},String.prototype.whiteout=function(e){var n=this;if(e){var i=n.slice(0);return t.is.array(e)?t.all(e,function(t){i=i.replace(t,"")}):t.is.string(e)&&(i=i.replace(e,"")),i.trim()}return this},String.prototype.capitalize=function(){return this.replace(/[^\s]+/g,function(t){return t.replace(/^./,function(t){return t.toUpperCase()})})},String.prototype.firstWord=function(){var t=this.indexOf(" ");return t>-1?this.substring(0,t):this};var t=new function(){var e=this;e.i={obj:{},array:[],"function":function(){},string:"ABC",integer:1,bool:!0,date:new Date,args:arguments,"null":null,undefined:void 0,nan:NaN,setConditions:function(t){return null!=t&&void 0!=t&&NaN!=t},defaultConditions:function(t){return Boolean(t)},formatOptions:function(){return{value:0,decimal:2,digits:-1,dynamic:!1,form:"{0}",delim:"",type:""}}},e.types={obj:"Object",array:"Array","function":"Function",string:"String",integer:"Number",bool:"Boolean",date:"Date",args:"Arguments","null":"Null",undefined:"Undefined",nan:"Number"},e.guidMap={},e.all=function(t,n,i){var r={stop:!1};if(e.is.array(t))for(var s=t.length,a=0;a<s&&(n(t[a],a,r),!r.stop);a++);else if(e.is.number(t))for(var u=0,o=Math.abs(t);u<o&&(u++,n(u,o,r),!r.stop););else for(var l in t)if((i||t.hasOwnProperty(l))&&n(t[l],l,r),r.stop)break},e.call=function(n,i,r){e.all(n,function(n){var s=e.prop(n,r);t.is["function"](s)&&s(i)})},e["class"]=function(t,n,i){var r=function(t,n){return e.all(n,function(n,i){e.is["function"](n)?t[i]=n:e.is.object(n)&&Object.defineProperty(t,i,e.fuse({enumerable:!1,configurable:!0},n))},!0),t},s=n||{};return i?e.is.array(i)?e.all(i,function(t){s=r(Object.create(t.prototype),s)}):s=r(Object.create(i.prototype),s):s=r({},s),t.prototype=s,t.prototype.constructor=t,t},e.contains=function(n,i){var r=!1;return r=t.is.string(n)?e.is["function"](i)?n.contains(i(n)):n.contains(i):e.is.def(e.search(n,i))},e.count=function(t,n){var i=0,r=e.is["function"](n)?n:function(t,e){return t};return e.all(t,function(t,n){e.is.set(r(t,n))&&i++}),i},e.debounce=function(t,e){e||(e=250);var n=null;return function(){var i=this,r=arguments;clearTimeout(n),n=setTimeout(function(){t.apply(i,r)},e)}},e.distinct=function(t,n){var i=[],r=e.is.array(t),s=n?n:function(t){return t};return e.map(t,function(t,e,n){var a=s(t);return i.indexOf(a)==-1?(i.push(a),r?t:{key:e,value:t}):(n.skip=!0,void console.log(i))},{build:r?[]:{}})},e.download=function(t,n,i){var r={csv:{ext:".csv",encoding:"data:application/csv;charset=utf-8",parse:function(t){return Array.isArray(t)?t.join(""):t}},json:{ext:".json",encoding:"data:application/json;charset=utf-8",parse:function(t){return e.is.string(t)?t:JSON.stringify(t)}}},s=r[i.toLowerCase()],a=s.parse(t);if(window.navigator.userAgent.indexOf("MSIE ")>-1||navigator.userAgent.match(/Trident.*rv\:11\./)){var u=window.open("","_blank");u.document.open("text/csv","replace"),u.document.write(a),u.document.close(),u.document.execCommand("SaveAs",!0,n+s.ext),u.close()}else{var o=s.encoding+","+encodeURIComponent(a),l=document.createElement("a");l.href=o,l.style="visibility:hidden",l.download=n+s.ext,document.body.appendChild(l),l.click(),document.body.removeChild(l)}},e.flow=function(t){return new n({initialValue:t,value:t})},e.first=function(t,n,i){var r=null,s=1;return i&&i>1?e.is.array(t)?(r=[],e.all(t,function(t,e,a){s>i&&(a.stop=!0),s++,n?r.push(e):r.push(t)})):(r={},e.all(t,function(t,e,n){s>i&&(n.stop=!0),r[e]=t,s++})):e.all(t,function(t,e,i){i.stop=!0,r=n?e:t}),r},e.filter=function(t,n){var i={stop:!1},r=null;if(e.is["function"](n))e.is.array(t)?(r=[],e.all(t,function(t,e,s){n(t,e,i)&&r.push(t),i.stop&&(s.stop=!0)})):e.is.object(t)&&(r={},e.all(t,function(t,e,s){n(t,e,i)&&(r[e]=t),i.stop&&(s.stop=!0)}));else if(e.is.object(n)){var s=null;r=e.filter(t,function(t){return s=!0,e.all(n,function(e,n){t[n]!=e&&(s=!1)}),s})}return r},e.format=function(n){var i=t.flow(n).def().update(e.i.formatOptions()).value(),r=e.formats[i.type.toLowerCase()],s="";return s=t.is["function"](r)?r(i):i.value},e.fuse=function(t,n,i,r){var s=i||!1;return e.all(n,function(n,i,r){e.is.object(n)&&e.is.set(t[i])&&"Config Object"==t[i]._identifier?t[i].update(n,!0):e.is.object(n)&&"Replace Object"==n._identifier?t[i]=n.content():s&&(e.is.object(n)||e.is.array(n))?(e.is.set(t[i])||(e.is.object(n)?t[i]={}:e.is.array(n)&&(t[i]=[])),e.fuse(t[i],n,!0)):t[i]=n}),t},e.getType=function(t){return e.i.obj.toString.call(t).match(/\s([a-zA-Z]+)/)[1]},e.group=function(t,n){var i=e.is["function"](n)?n:function(t){return e.prop(t,n)},r={},s=null;return e.all(t,function(t){s=i(t),e.flow(s).set().eval(function(t){return e.is.string(t.value)||e.is.number(t.value)}).result&&e.flow(r[s]).set().isTrue(function(){r[s].push(t)}).isFalse(function(){r[s]=[t]})}),r},e.guid=function(t,n){var i=e.i.setConditions(t)?t:"-",r=e.math.r16()+e.math.r16()+i+e.math.r16()+i+e.math.r16()+i+e.math.r16()+i+e.math.r16()+e.math.r16()+e.math.r16();if(n){if(e.guidMap[n]&&e.guidMap[n][r])return e.guid(t,n);e.guidMap[n]={},e.guidMap[n][r]=!0}return r},e.intersect=function(t,n,i){var r=(e.is.array(t),[]),s=e.map(t,function(t,e){return{value:e,key:i?i(t):t}},{build:{}}),a=e.map(n,function(t,e){return{value:e,key:i?i(t):t}},{build:{}});return e.all(s,function(e,n){void 0!=a[n]&&r.push(t[e])}),r},e.last=function(t,n,i){var r=null,s=1,a=[];return e.is.array(t)?i&&i>1?(r=[],a=t.reverse(),e.all(a,function(t,e,a){s>i&&(a.stop=!0),s++,n?r.push(e):r.push(t)})):e.all(a,function(t,e,i){i.stop=!0,s++,r=n?e:t}):(e.all(t,function(t,e,n){a.push(e)}),a.reverse(),i&&i>1?(r={},e.all(a,function(e,n,a){s>i&&(a.stop=!0),r[e]=t[e],s++})):e.all(a,function(e,i,a){a.stop=!0,r=n?e:t[e],s++})),r},e.map=function(t,n,i){var r=e.flow(i).def().update({stop:!1,skip:!1,pushMultiple:!1,build:[]}).value(),s=e.is.array(r.build),a=e.is.object(r.build),u=e.is["function"](n)?n:function(t){return t},o=function(t){s?r.build.push(t):a&&(r.build[t.key]=t.value)};return e.all(t,function(t,n,i){var s=u(t,n,r);r.skip?r.skip=!1:r.pushMultiple?(e.all(s,function(t){return o(t)}),r.pushMultiple=!1):o(s),r.stop&&(i.stop=!0)}),r.build},e.match=function(t,n,i){var r=e.flow(i).def().update({checkType:!1,recursive:!0,explicit:!1}).value(),s=!0;return!(r.checkType&&!e.is.sameType(t,n))&&(!(!e.is.set(t)&&e.is.set(n)||e.is.set(t)&&!e.is.set(n))&&(e.all(t,function(t,i,a){r.recursive&&(e.is.object(t)||e.is.array(t))?e.match(t,n[i],r)||(a.stop=!0,s=!1):(r.explicit?n[i]!==t:n[i]!=t)&&(a.stop=!0,s=!1)}),s))},e.move=function(t,n,i){return n!=i&&(e.is.array(t)?t.splice(i,0,t.splice(n,1)[0]):(t[i]=t[n],delete t[n])),t},e.prop=function(t,n,i){if(e.is.set(n)&&e.is.set(t)&&""!=n){var r=t,s=n.split(".");return e.all(s,function(t,n,i){r=r[t],e.is.set(r)||(i.stop=!0)}),r}return t},e.rank=function(t,n){var i=[],r=n?n:function(t){return t};return i=e.map(t,r),e.map(t.slice(),function(t){var e=i.indexOf(t);return 0==e?e+1:e})},e.remove=function(t,n){if(e.is.array(t)){var i=t.indexOf(n);i>-1&&t.splice(i,1)}else if(e.is.object(t)){var r=e.search(t,n,{getKey:!0});delete t[r]}return t},e.removeAt=function(t,n){return e.is.array(t)?n>-1&&t.splice(n,1):e.is.object(t)&&delete t[n],t},e.search=function(t,n,i){var r=null,s=e.flow(i).set().update({"default":null,all:!1,getKey:!1}).value();if(e.is["function"](n))e.all(t,function(t,e,i){n(t,e)&&(r=s.getKey?e:t,i.stop=!0)},s.all);else if(e.is.array(t)){var a=t.indexOf(n);a>-1&&(r=s.getKey?a:t[a])}else e.is.object(t)&&e.all(t,function(t,e,i){t==n&&(r=s.getKey?e:t,i.stop=!0)},s.all);return null==r?s["default"]:r},e.sort=function(t,n){if(e.is.array(n)){var i,r,s,a,u=e.map(n,function(t){return e.flow(t).def().update({dir:"asc",key:function(t){return t}}).value()});return t.slice().sort(function(t,n){return e.all(u,function(e,o,l){i="asc"==u.dir,r=0,s=e.key(t),a=e.key(n),r=(s<a?-1:s>a?1:0)*[-1,1][+!!i],0!=r&&(l.stop=!0)}),r})}var u=e.flow(n).def().update({dir:"asc",key:function(t){return t}}).value(),i="asc"==u.dir;return t.slice().sort(function(t,e){var n=u.key(t),r=u.key(e);return(n<r?-1:n>r?1:0)*[-1,1][+!!i]})},e["switch"]=function(t,n,i){var r=n[t];return e.flow(r).def().isFalse(function(){r=i}),e.is["function"](r)&&(r=r(t)),r},e.throttle=function(t,e){e||(e=250);var n,i;return function(){var r=this,s=+new Date,a=arguments;n&&s<n+e?(clearTimeout(i),i=setTimeout(function(){n=s,t.apply(r,a)},e)):(n=s,t.apply(r,a))}},e.formats={padleft:function(t){var n=t.value.toString();return n.length<t.places?e.formats.padleft({value:t.delim+n,places:t.places,delim:t.delim}):n}},e.is={def:function(t){var n=e.i.defaultConditions(t);return n},set:function(t){var n=e.i.setConditions(t);return n},sameType:function(t,n){return e.getType(t)==e.getType(n)},"function":function(t){return e.getType(t)==e.types["function"]},object:function(t){return e.getType(t)==e.types.obj},array:function(t){return e.getType(t)==e.types.array},args:function(t){return e.getType(t)==e.types.args},bool:function(t){return e.getType(t)==e.types.bool},string:function(t){return e.getType(t)==e.types.string},number:function(t){return e.getType(t)==e.types.integer&&!isNaN(t)},date:function(t){return e.getType(t)==e.types.date},"null":function(t){return e.getType(t)==e.types["null"]},undefined:function(t){return e.getType(t)==e.types.undefined},nan:function(t){return e.getType(t)==e.types.integer&&isNaN(t)}},e.math={r16:function(){return Math.floor(65536*(1+Math.random())).toString(16).substring(1)},roundUpTo:function(t,e){return Math.ceil(t/e)*e},median:function(t,n){var i=t;n&&(i=e.map(t,n)),i.sort(function(t,e){return t-e});var r=Math.floor(i.length/2);return i.length%2?i[r]:(i[r-1]+i[r])/2},sum:function i(t,n){var i=0;return e.all(t,function(t){i+=n?n(t):t}),i},average:function(t,n){var i=e.math.sum(t,n);return i>0||i<0?i/t.length:0},max:function(t,n){var i=null;return e.all(t,function(e){if(null==i&&(i=e),n)t[e]>i&&(i=t[e]);else{var r=n(t[e]);r>i&&(i=r)}}),i},min:function(t,n){var i=null;return e.all(t,function(e){if(null==i&&(i=e),n)t[e]<i&&(i=t[e]);else{var r=n(t[e]);r<i&&(i=r)}}),i},percentages:function(t,n){var i=e.math.sum(t,n);return e.map(t,function(t,e){return 0!=i?(n?n(t):t)/i:0})}},e.render={blend:function(t,e,n){var i=parseInt(t.slice(1),16),r=parseInt(e.slice(1),16),s=i>>16,a=i>>8&255,u=255&i,o=r>>16,l=r>>8&255,c=255&r;return"#"+(16777216+65536*(Math.round((o-s)*n)+s)+256*(Math.round((l-a)*n)+a)+(Math.round((c-u)*n)+u)).toString(16).slice(1)},bytesToImageSrc:function(t,e){return"data:image/{0};base64,{1}".format(e?e:"png",t)},bytesToCanvas:function(t,e,n,i){for(var r=n.getContext("2d"),s=t,a=s.length,u=[a];a--;)u[a]=String.fromCharCode(s[a]);var o=u.join(""),l=window.btoa(o),c=new Image;c.src="data:image/{0};base64,{1}".format(e?e:"png",l),c.onload=function(){console.log("Image Onload"),r.drawImage(c,i[0],i[1],n.width,n.height)},c.onerror=function(t){console.log("Img Onerror:",t)}}}},e=t["class"](function(){this.map=new WeakMap},{context:function(t,e){return e(this.map.get(t))},bind:function(e,n){this.map.set(e,t.is.object(n)?n:{})},get:function(e,n){return t.prop(this.map.get(e),n)},set:function(e,n,i){var r=n.split(".");if(r.length>0){var s=r.pop(),a=this.map.get(e);t.all(r,function(e){t.is.set(a[e])||(a[e]={}),a=a[e]}),a[s]=i}}}),n=t["class"](function(e){this.details=t.fuse({initialValue:e,value:e,status:!0},e)},{result:{get:function(){return this.details.status}},all:function(e){var n=t.getType(this.details.value);return n!=t.types.array&&n!=t.types.object&&n!=t.types.args&&n!=t.types.string||t.all(this.details.value,e),this},append:function(e){var n=t.getType(this.details.value);return n==t.types.array?this.details.value.push(e):n==t.types.string&&t.is.string(e)&&(this.details.value+=e),this},appendTo:function(e){var n=t.getType(this.details.value);return n==t.types.array?this.details.value.unshift(e):n==t.types.string&&t.is.string(e)&&(this.details.value=e+this.details.value),this},average:function(e){return t.is.array(this.details.value)&&(this.details.value=t.math.average(this.details.value,e)),this},call:function(e,n){var i=t.getType(this.details.value);return i!=t.types.array&&i!=t.types.object&&i!=t.types.args&&i!=t.types.string||t.call(this.details.value,e,n),this},contains:function(e){if(this.details.status){var n=t.getType(this.details.value);n!=t.types.array&&n!=t.types.object&&n!=t.types.args&&n!=t.types.string||(this.details.value=t.contains(this.details.value,e))}return this},count:function(e){var n=t.getType(this.details.value);return n!=t.types.array&&n!=t.types.object&&n!=t.types.args&&n!=t.types.string||(this.details.value=t.count(this.details.value)),this},def:function(){return this.details.status&&(this.details.status=t.i.defaultConditions(this.details.value)),this},equals:function(t){return this.details.status&&(this.details.status=this.details.value==t),this},equalsExplicit:function(t){return this.details.status&&(this.details.status=this.details.value===t),this},evaluate:function(t){return this.details.status&&t(this.details),this},filter:function(e){var n=t.getType(this.details.value);return n!=t.types.array&&n!=t.types.object||(this.details.value=t.filter(this.details.value,e)),this},first:function(e,n){var i=t.getType(this.details.value);return i!=t.types.array&&i!=t.types.object||(this.details.value=t.first(this.details.value,e,n)),this},getProperty:function(e){return this.details.value=t.prop(this.details.value,e),this},group:function(e){var n=t.getType(this.details.value);return n!=t.types.array&&n!=t.types.object||(this.details.value=t.group(this.details.value,e)),this},isTrue:function(t){return this.details.status&&t(this.details),this},isFalse:function(t){return this.details.status||t(this.details),this},isSameType:function(e){return this.details.status=t.is.sameType(this.details.value,e),this},isType:function(e){return this.details.status=t.getType(this.details.value)==e,this},last:function(e,n){var i=t.getType(this.details.value);return i!=t.types.array&&i!=t.types.object||(this.details.value=t.last(this.details.value,e,n)),this},map:function(e,n){var i=t.getType(this.details.value);return i!=t.types.array&&i!=t.types.object||(this.details.value=t.map(this.details.value,e,n)),this},max:function(e){return t.is.array(this.details.value)&&(this.details.value=t.math.max(this.details.value,e)),this},median:function(e){return t.is.array(this.details.value)&&(this.details.value=t.math.max(this.details.value,e)),this},min:function(e){return t.is.array(this.details.value)&&(this.details.value=t.math.min(this.details.value,e)),this},search:function(e,n){var i=t.getType(this.details.value);return i!=t.types.array&&i!=t.types.object&&i!=t.types.args&&i!=t.types.string||(this.details.value=t.search(this.details.value,e,n)),this},set:function(){return this.details.status&&(this.details.status=t.i.setConditions(this.details.value)),this},sort:function(e){var n=t.getType(this.details.value);return n!=t.types.array&&n!=t.types.object||(this.details.value=t.sort(this.details.value,e)),this},sum:function(e){return t.is.array(this.details.value)&&(this.details.value=t.math.sum(this.details.value,e)),this},value:function(t){return this.details.status||void 0==t?this.details.value:t},update:function(e){return this.details.status?this.details.value=t.fuse(e,this.details.value):this.details.value=e,this}}),i=t["class"](function(e,n,i){var r={},s={};t.all(e,function(t,e){e.length>1?s[e]=t:r[e]=t}),this.keyChars=r,this.keyWords=s,this.options=i?i:{}},{parse:function(e){var n=this,i=t.flow(n.options).set().update({skip:0,bubble:!0,ignoreCase:!0,defaultAction:function(){}}).value(),r="",s=0,a=function(){},u=!1;t.all(e,function(o,l){return i.skip>0?i.skip--:(i.bubble=!0,u=!1,r=o,s=parseInt(l),a=n.keyChars[r],void 0!=a&&(a(r,s,e,i),u=!0),t.all(n.keyWords,function(n,o){if((i.bubble||!u)&&(o[0]&&i.ignoreCase?o[0].toLowerCase():o[0])==(r&&i.ignoreCase?r.toLowerCase():r)){var l=!0,c="";t.all(o,function(t,n){c=e[s+parseInt(n)],(t&&i.ignoreCase?t.toLowerCase():t)!=(c&&i.ignoreCase?c.toLowerCase():c)&&(l=!1)}),l&&(a=n,void 0!=a&&(i.skip=o.length-1,a(o,s,e,i),u=!0))}}),void(u||i.defaultAction(r,s,e,i)))})}}),r=t["class"](function(t){this.i={},this.merge(t)},{clear:function(){this.i={}},get:function(t){this.i[t]},merge:function(e){var n=this;if(e)if(t.is.string(e)){var i=e.split(";");t.all(i,function(t){if(""!=t){var e=t.split(/:(.+)/);n.i[e[0].trim()]=e[1].trim()}})}else t.is.object(e)&&t.fuse(n.i,e)},remove:function(t){delete this.i[t]},set:function(t,e){this.i[t]=e},toJson:function(){return this.i},toString:function(){var e="";return t.all(this.i,function(t,n){t&&(e+=n+":"+t+";")}),e}}),s=t["class"](function(t){this.i={},this.merge(t)},{clear:function(){this.i={}},get:function(t){this.i[t]},merge:function(e){var n=this;if(e)if(t.is.string(e)){var i=e.split(";");t.all(i,function(t){if(""!=t){var e=t.split("=");n.i[e[0].trim()]=e[1].replace('"',"").trim()}})}else t.is.object(e)&&t.fuse(n.i,e)},remove:function(t){delete this.i[t]},set:function(t,e){this.i[t]=e},toJson:function(){return this.i},toString:function(){var e="";return t.all(this.i,function(t,n){t&&(e+=n+'="'+t+'" ')}),e}}),a=t["class"](function(t){this.i=t,this._identifier="Replace Object"},{content:function(){return this.i}}),u=t["class"](function(t){this._identifier="Config Object",this._registry={},this.update(t)},{update:function(e,n){var i=this;t.is.object(e)&&e&&(n?t.fuse(i,e,!0):t.fuse(i,e),t.all(i._registry,function(n,r,s){t.is["function"](n)&&n(i,e)}))},get:function(t){return this[t]},set:function(t,e){this[t]=e},remove:function(t){delete this[t]},handler:function(t,e){e?this._registry[t]=e:delete this._registry[t]}}),o=t["class"](function(t){this._identifier="Config Object",this.update(t)},{add:function(e,n){var i=e.toLowerCase();t.is.set(this[i])||(this[i]=[]),t.is.array(n)?this[i]=this[i].concat(n):this[i].push(n)},delegate:function(e,n,i){var r=e.toLowerCase(),s=this[r];if(t.is.array(s)){var n={event:r,before:!0,after:!1,isCancelled:!1,data:n};return t.all(s,function(t){setTimeout(function(){t(n)},i?i:10)}),function(){n.before=!1,n.after=!0,n.isCancelled||t.all(s,function(t){setTimeout(function(){t(n)},i?i:10)})}}},remove:function(e,n){var i=e.toLowerCase();t.is.set(n)?this[i]=t.remove(this[i],n):delete this[i]},trigger:function(e,n){var i=e.toLowerCase(),r=this[i];if(t.is.array(r)){var n={event:i,before:!0,after:!1,isCancelled:!1,data:n};return t.all(r,function(t){t(n)}),function(){n.before=!1,n.after=!0,n.isCancelled||t.all(r,function(t){t(n)})}}},update:function(e){var n=this;t.is.object(e)&&t.all(e,function(t,e){n.add(e,t)})}}),l=t["class"](function(e){var n=this;n.lastStarted=0,n.lapsedTime=0,n.clock=null,n.settings={onTick:function(t){},tickRate:500},n.settings=t.flow(e).def().update(n.settings).value(),n.update=function(){n.settings.onTick(n.getTime())},n.start=function(){n.clock=setInterval(n.update,n.settings.tickRate),n.lastStarted=n.lastStarted?n.lastStarted:n.now()},n.stop=function(){n.lapsedTime=n.lastStarted?n.lapsedTime+n.now()-n.lastStarted:n.lapsedTime,n.lastStarted=0,clearInterval(n.clock)},n.reset=function(){n.stop(),n.lapsedTime=n.lastStarted=0,n.update()},n.getRawTime=function(){return n.lapsedTime+(n.lastStarted?n.now()-n.lastStarted:0)},n.getTime=function(){var t=0,e=0,i=0,r=0,s=n.getRawTime();return t=Math.floor(s/36e5),s%=36e5,e=Math.floor(s/6e4),s%=6e4,i=Math.floor(s/1e3),r=s%1e3,{Hours:n.pad(t,2),Minutes:n.pad(e,2),Seconds:n.pad(i,2),MilliSeconds:n.pad(r,3),Raw:s}},n.pad=function(t,e){var n="0000"+t;return n.substr(n.length-e)},n.now=function(){return(new Date).getTime()}}),c=t["class"](function(){},{count:{get:function(){return this.getKeys.length}},getKeys:{get:function(){return this.keys?this.keys():t.map(this,function(t,e){return e})}},getValues:{get:function(){return this.values?this.values():t.map(this,function(t,e){return t})}},each:function(e){t.all(this,e)},toArray:function(){var e=[];return t.all(this,function(t,n){e[n]=t}),e},toList:function(){return new f(this.toArray())},toDictionary:function(){var t=new h;return this.each(function(e,n){t.add(n,e)}),t}}),f=t["class"](function(t){c.call(this),this.addRange(t)},{add:function(t,e){for(var n=e&&e.start,i=n?e.start:0;this.hasOwnProperty(i);)i++;return this[i]=t,n&&(e.start=i),this},addRange:function(e){if(t.is.array(e)||e instanceof c){var n=this,i={start:0};t.all(e,function(t){return n.add(t,i)})}return this},clear:function(){var e=this;return t.all(e,function(t,n){delete e[n]}),e},contains:function(e){return t.is["function"](e)?t.contains(this,e):t.contains(this,function(t){return t==e})},count:{get:function(){return this.getKeys.length},set:function(t){var e=this.count;e>t&&this.removeRange(t-1)}},distinct:function(e){var n=this.toArray();return n=t.distinct(n,e),new f(n)},indexOf:function(e){return t.search(this,function(t){return t==e},{getKey:!0})},insert:function(e,n){var i=this,r=parseInt(e),s=t.sort(t.filter(t.map(this.getKeys,function(t){return parseInt(t)}),function(t){return t>=r}),{dir:"desc"});return t.all(s,function(t){i[t+1]=i[t]}),i[r]=n,this},insertRange:function(e,n){var i=this,r=parseInt(e),s=void 0!=n.length?n.length:n.count,a=t.sort(t.filter(t.map(this.getKeys,function(t){return parseInt(t)}),function(t){return t>=r}),{dir:"desc"});return t.all(a,function(t){i[t+s]=i[t]}),t.all(n,function(t){i[r]=t,r++}),this},getRange:function(e,n){var i=this,r=t.map(i.getKeys,function(t){return parseInt(t)}),s=parseInt(e),n=n?parseInt(n):r[r.length-1];return t.map(r,function(t,e,i){return e>=s&&e<=n?t:void(i.skip=!0)})},remove:function(t){var e=this.indexOf(t);return null!=e&&this.removeAt(e),this},removeAt:function(e){var n=this,i=parseInt(e),r=t.filter(t.map(this.getKeys,function(t){return parseInt(t)}),function(t){return t>i});return delete this[i],t.all(r,function(t){return n[t-1]=n[t]}),delete this[r[r.length-1]],this},removeRange:function(e,n){var i=this,r=t.map(this.getKeys,function(t){return parseInt(t)}),s=parseInt(e),n=n?parseInt(n):r[r.length-1];return t.all(t.filter(r,function(t){return t>=s&&t<=n}),function(t){return delete i[t]}),n<r[r.length-1]&&(t.all(t.filter(r,function(t){return t>n}),function(t){return i[s++]=i[t]}),delete i[r[r.length-1]]),this},search:function(e){return t.is["function"](e)?t.search(this,e):t.search(this,function(t){return t==e})},select:function(e){var n=this.toArray();return n=t.map(n,e),new f(n)},sort:function(e,n){var i=this.toArray();i=t.sort(i,n);var r=this;return t.all(i,function(t,e){return r[e]=i}),this},where:function(e){var n=this.toArray();return n=t.filter(n,e),new f(n)}},c),h=t["class"](function(){c.call(this)},{add:function(t,e){this[t]=e},clear:function(){var e=this;t.all(e,function(t,n){return e.remove(n)})},containsKey:function(e){return t.is.set(this[e])},containsValue:function(e){return t.contains(this,function(t){return t==e})},remove:function(t){delete this[t]}},c);t.lib={ConditionChain:n,StringParser:i,StyleParser:r,AttrParser:s,Overwrite:a,PrivateStore:e,Config:u,EventManager:o,StopWatch:l,Enumerable:c,List:f,Dictionary:h},"undefined"!=typeof module?module.exports=t:"undefined"!=typeof window&&(window.__=window.iterate=t)}();
+"use strict";
+
+(function () {
+    var __ = require('iterate-js-lite');
+
+    __.download = function (content, fileName, type) {
+        /// <summary>Downloads a file from an array of strings given a name and type.</summary>
+        /// <param type="Array" name="content">Array of strings joined together for the files content.</param>
+        /// <param type="String" name="fileName">Name of the file without the extension which is added on by the third param.</param>
+        /// <param type="String" name="type">File type, only current choice is 'csv'.</param>
+        var fileMap = {
+            'csv': { ext: '.csv', encoding: 'data:application/csv;charset=utf-8', parse: function parse(data) {
+                    return __.is.array(data) ? data.join('') : data;
+                } },
+            'json': { ext: '.json', encoding: 'data:application/json;charset=utf-8', parse: function parse(data) {
+                    return __.is.string(data) ? data : JSON.stringify(data);
+                } }
+        };
+        var fileType = fileMap[type.toLowerCase()];
+        var data = fileType.parse(content);
+        if (window.navigator.userAgent.indexOf("MSIE ") > -1 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+            var IEwindow = window.open('', '_blank');
+            IEwindow.document.open("text/csv", "replace");
+            IEwindow.document.write(data);
+            IEwindow.document.close();
+            IEwindow.document.execCommand('SaveAs', true, fileName + fileType.ext);
+            IEwindow.close();
+        } else {
+            var uri = fileType.encoding + ',' + encodeURIComponent(data);
+            var link = document.createElement("a");
+            link.href = uri;
+            link.style = "visibility:hidden";
+            link.download = fileName + fileType.ext;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+    __.flow = function (obj) {
+        /// <summary> Returns a ConditionChain object with additional function and operations based on the type of object passed in.</summary>
+        /// <param type="Value" name="obj">Value to be checked and evaluated.</param>
+        /// <returns type="ConditionChain">A chain object, which contains many different functions, to get the boolean result simply call [chain].result. For more see the ConditionChain class.</returns>
+
+        return new ConditionChain({ initialValue: obj, value: obj });
+    };
+    __.render = {
+        blend: function blend(c0, c1, p) {
+            /// <summary>Blends the second hex color into the first by a percentage</summary>
+            /// <param type="String" name="c0">Primary Hex string to be blended. Ex: '#FFFFFF'</param>
+            /// <param type="String" name="c1">Secondary Hex string to be blended into the first. Ex: '#000000'</param>
+            /// <param type="Decimal" name="p">Percentage of the second hex to be blended into the first</param>
+            /// <returns type="Hex String">Resulting hex string of the blend.</returns>
+            var f = parseInt(c0.slice(1), 16),
+                t = parseInt(c1.slice(1), 16),
+                R1 = f >> 16,
+                G1 = f >> 8 & 0x00FF,
+                B1 = f & 0x0000FF,
+                R2 = t >> 16,
+                G2 = t >> 8 & 0x00FF,
+                B2 = t & 0x0000FF;
+            return "#" + (0x1000000 + (Math.round((R2 - R1) * p) + R1) * 0x10000 + (Math.round((G2 - G1) * p) + G1) * 0x100 + (Math.round((B2 - B1) * p) + B1)).toString(16).slice(1);
+        },
+        bytesToImageSrc: function bytesToImageSrc(bytes, type) {
+            // el.src = __.render.bytesToImage( [ byteArrayFromServer ].join('') );
+            return "data:image/{0};base64,{1}".format(type ? type : 'png', bytes);
+        },
+        bytesToCanvas: function bytesToCanvas(bytes, type, canvas, coords) {
+            //var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+
+            var uInt8Array = bytes;
+            var i = uInt8Array.length;
+            var binaryString = [i];
+            while (i--) {
+                binaryString[i] = String.fromCharCode(uInt8Array[i]);
+            }
+            var data = binaryString.join('');
+
+            var base64 = window.btoa(data);
+
+            var img = new Image();
+            img.src = "data:image/{0};base64,{1}".format(type ? type : 'png', base64);
+            img.onload = function () {
+                console.log("Image Onload");
+                ctx.drawImage(img, coords[0], coords[1], canvas.width, canvas.height);
+            };
+            img.onerror = function (stuff) {
+                console.log("Img Onerror:", stuff);
+            };
+        }
+    };
+
+    // Wrapper for weakmap for simplistic private variable management
+    var PrivateStore = __.class(function () {
+        this.map = new WeakMap();
+    }, {
+        context: function context(_context, func) {
+            return func(this.map.get(_context));
+        },
+        bind: function bind(context, data) {
+            this.map.set(context, __.is.object(data) ? data : {});
+        },
+        get: function get(context, path) {
+            return __.prop(this.map.get(context), path);
+        },
+        set: function set(context, path, value) {
+            var paths = path.split('.');
+            if (paths.length > 0) {
+                var fragment = paths.pop(),
+                    obj = this.map.get(context);
+                __.all(paths, function (x) {
+                    if (!__.is.set(obj[x])) obj[x] = {};
+                    obj = obj[x];
+                });
+                obj[fragment] = value;
+            }
+        }
+    });
+
+    // [Testing] Chaining Conditions/Actions by a boolean evaluation
+    var ConditionChain = __.class(function (value) {
+        this.details = __.fuse({
+            initialValue: value,
+            value: value,
+            status: true
+        }, value);
+    }, {
+        result: { get: function get() {
+                return this.details.status;
+            } },
+        all: function all(func) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) __.all(this.details.value, func);
+            return this;
+        },
+        append: function append(value) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array) this.details.value.push(value);else if (type == __.types.string && __.is.string(value)) this.details.value += value;
+            return this;
+        },
+        appendTo: function appendTo(value) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array) this.details.value.unshift(value);else if (type == __.types.string && __.is.string(value)) this.details.value = value + this.details.value;
+            return this;
+        },
+        average: function average(func) {
+            if (__.is.array(this.details.value)) this.details.value = __.math.average(this.details.value, func);
+            return this;
+        },
+        call: function call(args, chain) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) __.call(this.details.value, args, chain);
+            return this;
+        },
+        contains: function contains(func) {
+            if (this.details.status) {
+                var type = __.getType(this.details.value);
+                if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.contains(this.details.value, func);
+            }
+            return this;
+        },
+        count: function count(func) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.count(this.details.value);
+            return this;
+        },
+        def: function def() {
+            if (this.details.status) this.details.status = __.i.defaultConditions(this.details.value);
+            return this;
+        },
+        equals: function equals(value) {
+            if (this.details.status) this.details.status = this.details.value == value;
+            return this;
+        },
+        equalsExplicit: function equalsExplicit(value) {
+            if (this.details.status) this.details.status = this.details.value === value;
+            return this;
+        },
+        evaluate: function evaluate(condition) {
+            if (this.details.status) condition(this.details);
+            return this;
+        },
+        filter: function filter(func) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.filter(this.details.value, func);
+            return this;
+        },
+        first: function first(func, n) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.first(this.details.value, func, n);
+            return this;
+        },
+        getProperty: function getProperty(propChain) {
+            this.details.value = __.prop(this.details.value, propChain);
+            return this;
+        },
+        group: function group(func) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.group(this.details.value, func);
+            return this;
+        },
+        isTrue: function isTrue(func) {
+            if (this.details.status) func(this.details);
+            return this;
+        },
+        isFalse: function isFalse(func) {
+            if (!this.details.status) func(this.details);
+            return this;
+        },
+        isSameType: function isSameType(type) {
+            this.details.status = __.is.sameType(this.details.value, type);
+            return this;
+        },
+        isType: function isType(type) {
+            this.details.status = __.getType(this.details.value) == type;
+            return this;
+        },
+        last: function last(func, n) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.last(this.details.value, func, n);
+            return this;
+        },
+        map: function map(func, options) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.map(this.details.value, func, options);
+            return this;
+        },
+        max: function max(func) {
+            if (__.is.array(this.details.value)) this.details.value = __.math.max(this.details.value, func);
+            return this;
+        },
+        median: function median(func) {
+            if (__.is.array(this.details.value)) this.details.value = __.math.max(this.details.value, func);
+            return this;
+        },
+        min: function min(func) {
+            if (__.is.array(this.details.value)) this.details.value = __.math.min(this.details.value, func);
+            return this;
+        },
+        search: function search(func, options) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.search(this.details.value, func, options);
+            return this;
+        },
+        set: function set() {
+            if (this.details.status) this.details.status = __.i.setConditions(this.details.value);
+            return this;
+        },
+        sort: function sort(options) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object) this.details.value = __.sort(this.details.value, options);
+            return this;
+        },
+        sum: function sum(func) {
+            if (__.is.array(this.details.value)) this.details.value = __.math.sum(this.details.value, func);
+            return this;
+        },
+        value: function value(def) {
+            if (!this.details.status && def != undefined) return def;
+            return this.details.value;
+        },
+        update: function update(defaultObj) {
+            if (this.details.status) this.details.value = __.fuse(defaultObj, this.details.value);else this.details.value = defaultObj;
+            return this;
+        }
+    });
+
+    // Base for creating a string parser
+    var StringParser = __.class(function (keywords, defaultAction, options) {
+        var keyChars = {},
+            keyWords = {};
+
+        __.all(keywords, function (x, y) {
+            if (y.length > 1) keyWords[y] = x;else keyChars[y] = x;
+        });
+
+        this.keyChars = keyChars;
+        this.keyWords = keyWords;
+        this.options = options ? options : {};
+    }, {
+        parse: function parse(str) {
+            var self = this,
+                options = __.flow(self.options).set().update({ skip: 0, bubble: true, ignoreCase: true, defaultAction: function defaultAction() {} }).value(),
+                char = '',
+                idx = 0,
+                func = function func() {},
+                called = false;
+
+            __.all(str, function (a, b) {
+                if (options.skip > 0) return options.skip--;
+                options.bubble = true;
+                called = false;
+                char = a;
+                idx = parseInt(b);
+
+                func = self.keyChars[char];
+                if (func != undefined) {
+                    func(char, idx, str, options);
+                    called = true;
+                }
+                __.all(self.keyWords, function (x, y) {
+                    if (options.bubble || !called) {
+                        if ((y[0] && options.ignoreCase ? y[0].toLowerCase() : y[0]) == (char && options.ignoreCase ? char.toLowerCase() : char)) {
+                            var pass = true;
+                            var comp = '';
+                            __.all(y, function (c, d) {
+                                comp = str[idx + parseInt(d)];
+                                if ((c && options.ignoreCase ? c.toLowerCase() : c) != (comp && options.ignoreCase ? comp.toLowerCase() : comp)) pass = false;
+                            });
+                            if (pass) {
+                                func = x;
+                                if (func != undefined) {
+                                    options.skip = y.length - 1;
+                                    func(y, idx, str, options);
+                                    called = true;
+                                }
+                            }
+                        }
+                    }
+                });
+                if (!called) options.defaultAction(char, idx, str, options);
+            });
+        }
+    });
+
+    // Parsing element style params from json to string and vise versa
+    var StyleParser = __.class(function (obj) {
+        this.i = {};
+        this.merge(obj);
+    }, {
+        clear: function clear() {
+            this.i = {};
+        },
+        get: function get(key) {
+            this.i[key];
+        },
+        merge: function merge(style) {
+            var self = this;
+            if (style) {
+                if (__.is.string(style)) {
+                    var values = style.split(';');
+                    __.all(values, function (p) {
+                        if (p != "") {
+                            var a = p.split(/:(.+)/);
+                            self.i[a[0].trim()] = a[1].trim();
+                        }
+                    });
+                } else if (__.is.object(style)) __.fuse(self.i, style);
+            }
+        },
+        remove: function remove(key) {
+            delete this.i[key];
+        },
+        set: function set(key, value) {
+            this.i[key] = value;
+        },
+        toJson: function toJson() {
+            return this.i;
+        },
+        toString: function toString() {
+            var retVal = '';
+            __.all(this.i, function (p, k) {
+                if (p) retVal += k + ':' + p + ';';
+            });
+            return retVal;
+        }
+    });
+
+    // Parsing attribute params from json to string and vise versa
+    var AttrParser = __.class(function (obj) {
+        this.i = {};
+        this.merge(obj);
+    }, {
+        clear: function clear() {
+            this.i = {};
+        },
+        get: function get(key) {
+            this.i[key];
+        },
+        merge: function merge(style) {
+            var self = this;
+            if (style) {
+                if (__.is.string(style)) {
+                    var values = style.split(';');
+                    __.all(values, function (p) {
+                        if (p != "") {
+                            var a = p.split('=');
+                            self.i[a[0].trim()] = a[1].replace('"', '').trim();
+                        }
+                    });
+                } else if (__.is.object(style)) {
+                    __.fuse(self.i, style);
+                }
+            }
+        },
+        remove: function remove(key) {
+            delete this.i[key];
+        },
+        set: function set(key, value) {
+            this.i[key] = value;
+        },
+        toJson: function toJson() {
+            return this.i;
+        },
+        toString: function toString() {
+            var retVal = '';
+            __.all(this.i, function (p, k) {
+                if (p) retVal += k + '="' + p + '" ';
+            });
+            return retVal;
+        }
+    });
+
+    // Configuration object with layering abilities that make extensive configs easy
+    var Config = __.class(function (options) {
+        this._identifier = 'Config Object';
+        this._registry = {};
+        this.update(options);
+    }, {
+        update: function update(options, deep) {
+            var self = this;
+            if (__.is.object(options)) {
+                if (options) {
+                    if (deep) __.fuse(self, options, true);else __.fuse(self, options);
+                    __.all(self._registry, function (func, key, event) {
+                        if (__.is.function(func)) func(self, options);
+                    });
+                }
+            }
+        },
+        get: function get(key) {
+            return this[key];
+        },
+        set: function set(key, value) {
+            this[key] = value;
+        },
+        remove: function remove(key) {
+            delete this[key];
+        },
+        handler: function handler(key, func) {
+            if (func) this._registry[key] = func;else delete this._registry[key];
+        }
+    });
+
+    // Simple little event manager
+    var EventManager = __.class(function (events) {
+        this._identifier = 'Config Object';
+        this.update(events);
+    }, {
+        add: function add(name, func) {
+            var eventName = name.toLowerCase();
+            if (!__.is.set(this[eventName])) this[eventName] = [];
+            if (__.is.array(func)) this[eventName] = this[eventName].concat(func);else this[eventName].push(func);
+        },
+        delegate: function delegate(name, data, timeout) {
+            var eventName = name.toLowerCase();
+            var events = this[eventName];
+            if (__.is.array(events)) {
+                var data = { event: eventName, before: true, after: false, isCancelled: false, data: data };
+                __.all(events, function (func) {
+                    setTimeout(function () {
+                        func(data);
+                    }, timeout ? timeout : 10);
+                });
+                return function () {
+                    data.before = false;
+                    data.after = true;
+                    if (!data.isCancelled) __.all(events, function (func) {
+                        setTimeout(function () {
+                            func(data);
+                        }, timeout ? timeout : 10);
+                    });
+                };
+            }
+        },
+        remove: function remove(name, func) {
+            var eventName = name.toLowerCase();
+            if (!__.is.set(func)) delete this[eventName];else this[eventName] = __.remove(this[eventName], func);
+        },
+        trigger: function trigger(name, data) {
+            var eventName = name.toLowerCase();
+            var events = this[eventName];
+            if (__.is.array(events)) {
+                var data = { event: eventName, before: true, after: false, isCancelled: false, data: data };
+                __.all(events, function (func) {
+                    func(data);
+                });
+                return function () {
+                    data.before = false;
+                    data.after = true;
+                    if (!data.isCancelled) __.all(events, function (func) {
+                        func(data);
+                    });
+                };
+            }
+        },
+        update: function update(options) {
+            var self = this;
+            if (__.is.object(options)) __.all(options, function (x, y) {
+                self.add(y, x);
+            });
+        }
+    });
+
+    // Event Based Stop Watch with stop, start and reset abilities along with an on tick event
+    var StopWatch = __.class(function (options) {
+        var self = this;
+        self.lastStarted = 0;
+        self.lapsedTime = 0;
+        self.clock = null;
+        self.settings = {
+            onTick: function onTick(time) {},
+            tickRate: 500
+        };
+        self.settings = __.flow(options).def().update(self.settings).value();
+
+        self.update = function () {
+            self.settings.onTick(self.getTime());
+        };
+        self.start = function () {
+            self.clock = setInterval(self.update, self.settings.tickRate);
+            self.lastStarted = self.lastStarted ? self.lastStarted : self.now();
+        };
+        self.stop = function () {
+            self.lapsedTime = self.lastStarted ? self.lapsedTime + self.now() - self.lastStarted : self.lapsedTime;
+            self.lastStarted = 0;
+            clearInterval(self.clock);
+        };
+        self.reset = function () {
+            self.stop();
+            self.lapsedTime = self.lastStarted = 0;
+            self.update();
+        };
+        self.getRawTime = function () {
+            return self.lapsedTime + (self.lastStarted ? self.now() - self.lastStarted : 0);
+        };
+        self.getTime = function () {
+            var h = 0,
+                m = 0,
+                s = 0,
+                ms = 0;
+            var time = self.getRawTime();
+
+            h = Math.floor(time / (60 * 60 * 1000));
+            time = time % (60 * 60 * 1000);
+            m = Math.floor(time / (60 * 1000));
+            time = time % (60 * 1000);
+            s = Math.floor(time / 1000);
+            ms = time % 1000;
+
+            return { Hours: self.pad(h, 2), Minutes: self.pad(m, 2), Seconds: self.pad(s, 2), MilliSeconds: self.pad(ms, 3), Raw: time };
+        };
+        self.pad = function (num, size) {
+            var s = "0000" + num;
+            return s.substr(s.length - size);
+        };
+        self.now = function () {
+            return new Date().getTime();
+        };
+    });
+
+    // Ended up being a polyfill for missing object functions .keys() .values() etc but helpful
+    var Enumerable = __.class(function () {}, {
+        count: {
+            get: function get() {
+                return this.getKeys.length;
+            }
+        },
+        getKeys: {
+            get: function get() {
+                if (this.keys) return this.keys();
+                return __.map(this, function (x, y) {
+                    return y;
+                });
+            }
+        },
+        getValues: {
+            get: function get() {
+                if (this.values) return this.values();
+                return __.map(this, function (x, y) {
+                    return x;
+                });
+            }
+        },
+        each: function each(func) {
+            __.all(this, func);
+        },
+        toArray: function toArray() {
+            var ret = [];
+            __.all(this, function (x, y) {
+                ret[y] = x;
+            });
+            return ret;
+        },
+        toList: function toList() {
+            return new List(this.toArray());
+        },
+        toDictionary: function toDictionary() {
+            var dict = new Dictionary();
+            this.each(function (x, y) {
+                dict.add(y, x);
+            });
+            return dict;
+        }
+    });
+
+    // A significantly less efficent inheritable array class
+    var List = __.class(function (items) {
+        Enumerable.call(this);
+        this.addRange(items);
+    }, {
+        add: function add(item, options) {
+            var hasOptions = options && options.start,
+                start = hasOptions ? options.start : 0;
+            while (this.hasOwnProperty(start)) {
+                start++;
+            }this[start] = item;
+            if (hasOptions) options.start = start;
+            return this;
+        },
+        addRange: function addRange(items) {
+            if (__.is.array(items) || items instanceof Enumerable) {
+                var self = this,
+                    opt = { start: 0 };
+                __.all(items, function (x) {
+                    return self.add(x, opt);
+                });
+            }
+            return this;
+        },
+        clear: function clear() {
+            var self = this;
+            __.all(self, function (x, y) {
+                delete self[y];
+            });
+            return self;
+        },
+        contains: function contains(func) {
+            if (__.is.function(func)) return __.contains(this, func);
+            return __.contains(this, function (x) {
+                return x == func;
+            });
+        },
+        count: {
+            get: function get() {
+                return this.getKeys.length;
+            },
+            set: function set(value) {
+                var count = this.count;
+                if (count > value) this.removeRange(value - 1);
+            }
+        },
+        distinct: function distinct(func) {
+            var x = this.toArray();
+            x = __.distinct(x, func);
+            return new List(x);
+        },
+        indexOf: function indexOf(item) {
+            return __.search(this, function (x) {
+                return x == item;
+            }, { getKey: true });
+        },
+        insert: function insert(key, item) {
+            var self = this,
+                idx = parseInt(key),
+                keys = __.sort(__.filter(__.map(this.getKeys, function (x) {
+                return parseInt(x);
+            }), function (x) {
+                return x >= idx;
+            }), { dir: 'desc' });
+            __.all(keys, function (x) {
+                self[x + 1] = self[x];
+            });
+            self[idx] = item;
+            return this;
+        },
+        insertRange: function insertRange(key, items) {
+            var self = this,
+                idx = parseInt(key),
+                count = items.length != undefined ? items.length : items.count,
+                keys = __.sort(__.filter(__.map(this.getKeys, function (x) {
+                return parseInt(x);
+            }), function (x) {
+                return x >= idx;
+            }), { dir: 'desc' });
+            __.all(keys, function (x) {
+                self[x + count] = self[x];
+            });
+            __.all(items, function (x) {
+                self[idx] = x;idx++;
+            });
+            return this;
+        },
+        getRange: function getRange(start, end) {
+            var self = this,
+                key = 0,
+                keys = __.map(self.getKeys, function (x) {
+                return parseInt(x);
+            }),
+                begin = parseInt(start),
+                end = end ? parseInt(end) : keys[keys.length - 1];
+            return __.map(keys, function (x, y, z) {
+                if (y >= begin && y <= end) return x;
+                z.skip = true;
+            });
+        },
+        remove: function remove(item) {
+            var idx = this.indexOf(item);
+            if (idx != null) this.removeAt(idx);
+            return this;
+        },
+        removeAt: function removeAt(key) {
+            var self = this,
+                idx = parseInt(key),
+                keys = __.filter(__.map(this.getKeys, function (x) {
+                return parseInt(x);
+            }), function (x) {
+                return x > idx;
+            });
+            delete this[idx];
+            __.all(keys, function (x) {
+                return self[x - 1] = self[x];
+            }); // shift all after keys down one
+            delete this[keys[keys.length - 1]]; // remove tail copy
+            return this;
+        },
+        removeRange: function removeRange(start, end) {
+            var self = this,
+                keys = __.map(this.getKeys, function (x) {
+                return parseInt(x);
+            }),
+                begin = parseInt(start),
+                end = end ? parseInt(end) : keys[keys.length - 1];
+            __.all(__.filter(keys, function (x) {
+                return x >= begin && x <= end;
+            }), function (x) {
+                return delete self[x];
+            });
+            if (end < keys[keys.length - 1]) {
+                __.all(__.filter(keys, function (x) {
+                    return x > end;
+                }), function (x) {
+                    return self[begin++] = self[x];
+                });
+                delete self[keys[keys.length - 1]]; // remove tail copy
+            }
+            return this;
+        },
+        search: function search(func) {
+            if (__.is.function(func)) return __.search(this, func);
+            return __.search(this, function (x) {
+                return x == func;
+            });
+        },
+        select: function select(func) {
+            var x = this.toArray();
+            x = __.map(x, func);
+            return new List(x);
+        },
+        sort: function sort(func, options) {
+            var x = this.toArray();
+            x = __.sort(x, options);
+            var self = this;
+            __.all(x, function (v, k) {
+                return self[k] = x;
+            });
+            return this;
+        },
+        where: function where(func) {
+            var x = this.toArray();
+            x = __.filter(x, func);
+            return new List(x);
+        }
+    }, Enumerable);
+
+    // Basic object hash table with syntactic sugar
+    var Dictionary = __.class(function () {
+        Enumerable.call(this);
+    }, {
+        add: function add(key, value) {
+            this[key] = value;
+        },
+        clear: function clear() {
+            var self = this;
+            __.all(self, function (x, y) {
+                return self.remove(y);
+            });
+        },
+        containsKey: function containsKey(key) {
+            return __.is.set(this[key]);
+        },
+        containsValue: function containsValue(value) {
+            return __.contains(this, function (x) {
+                return x == value;
+            });
+        },
+        remove: function remove(key) {
+            delete this[key];
+        }
+    }, Enumerable);
+
+    __.lib.ConditionChain = ConditionChain;
+    __.lib.StringParser = StringParser;
+    __.lib.StyleParser = StyleParser;
+    __.lib.AttrParser = AttrParser;
+    __.lib.PrivateStore = PrivateStore;
+    __.lib.Config = Config;
+    __.lib.EventManager = EventManager;
+    __.lib.StopWatch = StopWatch;
+    __.lib.Enumerable = Enumerable;
+    __.lib.List = List;
+    __.lib.Dictionary = Dictionary;
+
+    if (typeof module !== 'undefined') module.exports = __;else if (typeof window !== 'undefined') window.__ = window.iterate = __;
+})();

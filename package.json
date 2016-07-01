@@ -30,5 +30,8 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-uglify": "^1.5.3"
+  },
+  "dependencies": {
+    "iterate-js-lite": "^1.0.8"
   }
 }
