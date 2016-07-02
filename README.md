@@ -2,13 +2,17 @@
 
 ## Description
 
-Adds to iterate-js-lite, methods: download, flow and the __.render.[...] section, along with many built in classes mostly experimental stuff will stay in here.
+Adds onto iterate-js-lite, methods: download, flow and the __.render.[...] section, along with many built in classes. 
+
+Mostly experimental functions/classes ill suited for lite will stay in here.
 
 ## Installation
 
 Install package with NPM and add it to your development dependencies:
 
 `npm install iterate-js`
+
+Around 14kb + 10kb from inheriting iterate-js-lite, uglified and minified.
 
 ## Usage
 
@@ -189,11 +193,38 @@ Most valuable functions
 
 - `new __.lib.ConditionChain()`
   
-  Object spawned by __.flow() for chaining conditions onto an object.
+  Object spawned by __.flow() for chaining conditions/operations onto an object.
 
 - `new __.lib.StringParser()`
 
-  Base framework for a string parser.
+  Base framework for a string parser. An example parser is shown below.
+
+  ```javascript
+  var target = '(this and that)',
+    build = [];
+
+  var parser = new __.lib.StringParser({
+    '(': function(char, idx, fullString, event) {
+      build.push('');
+    },
+    ')': function() {
+      console.log(build); // we are done print it out
+    },
+    ' ': function() {
+      // ignore space characters
+    },
+    'and': function(phrase, idx, fullString, event) {
+      build.push('[{0}]'.format(phrase));
+      build.push('');
+    }
+  }, {
+    defaultAction: function(char, idx, fullString, event) {
+      build[build.length - 1] += char;
+    }
+  });
+
+  parser.parse(target);
+  ```
 
 - `new __.lib.StyleParser()`
 

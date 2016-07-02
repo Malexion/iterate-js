@@ -116,19 +116,22 @@
 
     // [Testing] Chaining Conditions/Actions by a boolean evaluation
     var ConditionChain = __.class(function (value) {
-        this.details = __.fuse({
+        this.details = {
             initialValue: value,
             value: value,
             status: true
-        }, value);
+        };
+        if(__.is.object(value))
+            __.fuse(this.details, value);
     }, {
         result: { get: function() { return this.details.status; } },
-        all: function all(func) {
+        all: function (func) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) __.all(this.details.value, func);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
+                __.all(this.details.value, func);
             return this;
         },
-        append: function append(value) {
+        append: function (value) {
             var type = __.getType(this.details.value);
             if (type == __.types.array) 
                 this.details.value.push(value);
@@ -136,7 +139,7 @@
                 this.details.value += value;
             return this;
         },
-        appendTo: function appendTo(value) {
+        appendTo: function (value) {
             var type = __.getType(this.details.value);
             if (type == __.types.array) 
                 this.details.value.unshift(value);
@@ -144,130 +147,156 @@
                 this.details.value = value + this.details.value;
             return this;
         },
-        average: function average(func) {
-            if (__.is.array(this.details.value)) this.details.value = __.math.average(this.details.value, func);
+        average: function (func) {
+            if (__.is.array(this.details.value)) 
+                this.details.value = __.math.average(this.details.value, func);
             return this;
         },
-        call: function call(args, chain) {
+        call: function (args, chain) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) __.call(this.details.value, args, chain);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
+                __.call(this.details.value, args, chain);
             return this;
         },
-        contains: function contains(func) {
+        contains: function (func) {
             if (this.details.status) {
                 var type = __.getType(this.details.value);
-                if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.contains(this.details.value, func);
+                if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
+                    this.details.status = __.contains(this.details.value, func);
             }
             return this;
         },
-        count: function count(func) {
+        count: function (func) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.count(this.details.value);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
+                this.details.value = __.count(this.details.value);
             return this;
         },
-        def: function def() {
-            if (this.details.status) this.details.status = __.i.defaultConditions(this.details.value);
+        equals: function (value) {
+            if (this.details.status) 
+                this.details.status = (this.details.value == value);
             return this;
         },
-        equals: function equals(value) {
-            if (this.details.status) this.details.status = this.details.value == value;
+        equalsExplicit: function (value) {
+            if (this.details.status) 
+                this.details.status = (this.details.value === value);
             return this;
         },
-        equalsExplicit: function equalsExplicit(value) {
-            if (this.details.status) this.details.status = this.details.value === value;
+        evaluate: function (condition) {
+            if (this.details.status && __.is.function(condition)) 
+                condition(this.details);
             return this;
         },
-        evaluate: function evaluate(condition) {
-            if (this.details.status) condition(this.details);
-            return this;
-        },
-        filter: function filter(func) {
+        filter: function (func) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) this.details.value = __.filter(this.details.value, func);
+            if (type == __.types.array || type == __.types.object) 
+                this.details.value = __.filter(this.details.value, func);
             return this;
         },
-        first: function first(func, n) {
+        first: function (func, n) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) this.details.value = __.first(this.details.value, func, n);
+            if (type == __.types.array || type == __.types.object) 
+                this.details.value = __.first(this.details.value, func, n);
             return this;
         },
-        getProperty: function getProperty(propChain) {
+        getProperty: function (propChain) {
             this.details.value = __.prop(this.details.value, propChain);
             return this;
         },
-        group: function group(func) {
+        group: function (func) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) this.details.value = __.group(this.details.value, func);
+            if (type == __.types.array || type == __.types.object) 
+                this.details.value = __.group(this.details.value, func);
             return this;
         },
-        isTrue: function isTrue(func) {
-            if (this.details.status) func(this.details);
+        then: function (func) {
+            if (this.details.status) 
+                func(this.details);
             return this;
         },
-        isFalse: function isFalse(func) {
-            if (!this.details.status) func(this.details);
+        else: function (func) {
+            if (!this.details.status) 
+                func(this.details);
             return this;
         },
-        isSameType: function isSameType(type) {
+        isDefined: function () {
+            if (this.details.status) 
+                this.details.status = __.i.defaultConditions(this.details.value);
+            return this;
+        },
+        isSameType: function (type) {
             this.details.status = __.is.sameType(this.details.value, type);
             return this;
         },
-        isType: function isType(type) {
+        isSet: function () {
+            if (this.details.status) 
+                this.details.status = __.i.setConditions(this.details.value);
+            return this;
+        },
+        isType: function (type) {
             this.details.status = __.getType(this.details.value) == type;
             return this;
         },
-        last: function last(func, n) {
+        last: function (func, n) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) this.details.value = __.last(this.details.value, func, n);
+            if (type == __.types.array || type == __.types.object) 
+                this.details.value = __.last(this.details.value, func, n);
             return this;
         },
-        map: function map(func, options) {
+        map: function (func, options) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) this.details.value = __.map(this.details.value, func, options);
+            if (type == __.types.array || type == __.types.object) 
+                this.details.value = __.map(this.details.value, func, options);
             return this;
         },
-        max: function max(func) {
-            if (__.is.array(this.details.value)) this.details.value = __.math.max(this.details.value, func);
+        max: function (func) {
+            if (__.is.array(this.details.value)) 
+                this.details.value = __.math.max(this.details.value, func);
             return this;
         },
-        median: function median(func) {
-            if (__.is.array(this.details.value)) this.details.value = __.math.max(this.details.value, func);
+        median: function (func) {
+            if (__.is.array(this.details.value)) 
+                this.details.value = __.math.max(this.details.value, func);
             return this;
         },
-        min: function min(func) {
-            if (__.is.array(this.details.value)) this.details.value = __.math.min(this.details.value, func);
+        min: function (func) {
+            if (__.is.array(this.details.value)) 
+                this.details.value = __.math.min(this.details.value, func);
             return this;
         },
-        search: function search(func, options) {
+        search: function (func, options) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) this.details.value = __.search(this.details.value, func, options);
+            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
+                this.details.value = __.search(this.details.value, func, options);
             return this;
         },
-        set: function set() {
-            if (this.details.status) this.details.status = __.i.setConditions(this.details.value);
-            return this;
-        },
-        sort: function sort(options) {
+        sort: function (options) {
             var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) this.details.value = __.sort(this.details.value, options);
+            if (type == __.types.array || type == __.types.object) 
+                this.details.value = __.sort(this.details.value, options);
             return this;
         },
-        sum: function sum(func) {
-            if (__.is.array(this.details.value)) this.details.value = __.math.sum(this.details.value, func);
+        sum: function (func) {
+            if (__.is.array(this.details.value)) 
+                this.details.value = __.math.sum(this.details.value, func);
             return this;
         },
-        value: function value(def) {
-            if (!this.details.status && def != undefined) return def;
+        value: function (def) {
+            if (!this.details.status && def != undefined) 
+                return def;
             return this.details.value;
         },
-        update: function update(defaultObj) {
-            if (this.details.status) this.details.value = __.fuse(defaultObj, this.details.value);else this.details.value = defaultObj;
+        update: function (defaultObj) {
+            if (this.details.status) 
+                this.details.value = __.fuse(defaultObj, this.details.value);
+            else 
+                this.details.value = defaultObj;
             return this;
         }
     });
 
     // Base for creating a string parser
-    var StringParser = __.class(function(keywords, defaultAction, options) {
+    var StringParser = __.class(function(keywords, options) {
         var keyChars = {},
             keyWords = {};
 
@@ -284,7 +313,10 @@
     }, {
         parse: function(str) {
             var self = this,
-                options = __.flow(self.options).set().update({ skip: 0, bubble: true, ignoreCase: true, defaultAction: function() {  } }).value(),
+                options = __.flow(self.options)
+                            .isSet()
+                            .update({ skip: 0, bubble: true, ignoreCase: true, defaultAction: function() {  } })
+                            .value(),
                 char = '',
                 idx = 0,
                 func = function() { },
@@ -299,7 +331,7 @@
                 idx = parseInt(b);
 
                 func = self.keyChars[char];
-                if (func != undefined) {
+                if (__.is.function(func)) {
                     func(char, idx, str, options);
                     called = true;
                 }
@@ -522,7 +554,8 @@
             onTick: function onTick(time) {},
             tickRate: 500
         };
-        self.settings = __.flow(options).def().update(self.settings).value();
+        if(__.is.object(options))
+            __.fuse(self.settings, options);
 
         self.update = function () {
             self.settings.onTick(self.getTime());

@@ -1,6 +1,33 @@
 var __ = require('./dist/iterate.js');
 
-console.log(__);
+//console.log(__);
+
+// String Parser Test
+
+// var target = '(this and that)',
+// 	build = [];
+
+// var parser = new __.lib.StringParser({
+// 	'(': function(char, idx, fullString, event) {
+// 		build.push('');
+// 	},
+// 	')': function() {
+// 		console.log(build); // we are done print it out
+// 	},
+// 	' ': function() {
+// 		// ignore space characters
+// 	},
+// 	'and': function(phrase, idx, fullString, event) {
+// 		build.push('[{0}]'.format(phrase));
+// 		build.push('');
+// 	}
+// }, {
+// 	defaultAction: function(char, idx, fullString, event) {
+// 		build[build.length - 1] += char;
+// 	}
+// });
+
+// parser.parse(target);
 
 // Distinct Testing
 
