@@ -2,6 +2,30 @@ var __ = require('./dist/iterate.js');
 
 //console.log(__);
 
+// Updatable Test
+
+// var payload = new __.lib.Overwrite({});
+// var config = new __.lib.Config({
+// 	fish: 'stix',
+// 	adv: new __.lib.Config({
+// 		option1: true,
+// 		option2: true
+// 	})
+// });
+
+// console.log(payload instanceof __.lib.Updatable);
+// console.log(config instanceof __.lib.Updatable);
+// console.log(config instanceof __.lib.Config);
+
+// console.log(config);
+// config.update({
+// 	fish: 'snax',
+// 	adv: {
+// 		option2: false
+// 	}
+// });
+// console.log(config);
+
 // View Manager Test
 
 // var viewer = new __.lib.ViewManager({
