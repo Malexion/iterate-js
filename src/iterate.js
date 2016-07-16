@@ -363,90 +363,100 @@
     });
 
     // Parsing element style params from json to string and vise versa
-    var StyleParser = __.class(function(obj) {
-        this.i = {};
-        this.merge(obj);
+    var StyleParser = __.class(function(options) {
+        this._identifier = 'Config Object';
+        this.update(options);
     }, {
-        clear: function() {
-            this.i = {};
-        },
-        get: function(key) {
-            this.i[key];
-        },
-        merge: function(style) {
-            var self = this;
-            if (style) {
-                if (__.is.string(style)) {
-                    var values = style.split(';');
-                    __.all(values, function (p) {
-                        if (p != "") {
-                            var a = p.split(/:(.+)/);
-                            self.i[a[0].trim()] = a[1].trim();
-                        }
-                    });
-                } else if (__.is.object(style)) __.fuse(self.i, style);
+        asObject: {
+            get: function() {
+                return __.map(this, function(x, y, z) {
+                    if(y == '_identifier')
+                        z.skip = true;
+                    return { key: y, value: x };
+                }, { build: {} });
             }
         },
-        remove: function(key) {
-            delete this.i[key];
+        asString: {
+            get: function() {
+                var retVal = '';
+                __.all(this, function (p, k) {
+                    if (p && k != '_identifier') 
+                        retVal += '{0}:{1};'.format(k, p);
+                });
+                return retVal;
+            }
         },
-        set: function(key, value) {
-            this.i[key] = value;
-        },
-        toJson: function() {
-            return this.i;
-        },
-        toString: function() {
-            var retVal = '';
-            __.all(this.i, function (p, k) {
-                if (p) retVal += k + ':' + p + ';';
+        clear: function() {
+            var self = this;
+            __.all(self, function(x, y) {
+                if(y != '_identifier')
+                    self.remove(y);
             });
-            return retVal;
+        },
+        remove: function(property) {
+            delete this[property];
+        },
+        update: function(options) {
+            var self = this;
+            if(__.is.string(options)) {
+                var values = options.split(';');
+                __.all(values, function (p) {
+                    if (p != "") {
+                        var a = p.split(/:(.+)/);
+                        self[a[0].trim()] = a[1].trim();
+                    }
+                });
+            } else if(__.is.object(options))
+                __.fuse(self, options);
         }
     });
 
     // Parsing attribute params from json to string and vise versa
-    var AttrParser = __.class(function(obj) {
-        this.i = {};
-        this.merge(obj);
+    var AttrParser = __.class(function(options) {
+        this._identifier = 'Config Object';
+        this.update(options);
     }, {
-        clear: function() {
-            this.i = {};
-        },
-        get: function(key) {
-            this.i[key];
-        },
-        merge: function(style) {
-            var self = this;
-            if (style) {
-                if (__.is.string(style)) {
-                    var values = style.split(';');
-                    __.all(values, function (p) {
-                        if (p != "") {
-                            var a = p.split('=');
-                            self.i[a[0].trim()] = a[1].replace('"', '').trim();
-                        }
-                    });
-                } else if (__.is.object(style)) {
-                    __.fuse(self.i, style);
-                }
+        asObject: {
+            get: function() {
+                return __.map(this, function(x, y, z) {
+                    if(y == '_identifier')
+                        z.skip = true;
+                    return { key: y, value: x };
+                }, { build: {} });
             }
         },
-        remove: function(key) {
-            delete this.i[key];
+        asString: {
+            get: function() {
+                var retVal = '';
+                __.all(this, function (p, k) {
+                    if (p && k != '_identifier') 
+                        retVal += '{0}="{1}" '.format(k, p);
+                });
+                return retVal;
+            }
         },
-        set: function(key, value) {
-            this.i[key] = value;
-        },
-        toJson: function() {
-            return this.i;
-        },
-        toString: function() {
-            var retVal = '';
-            __.all(this.i, function (p, k) {
-                if (p) retVal += k + '="' + p + '" ';
+        clear: function() {
+            var self = this;
+            __.all(self, function(x, y) {
+                if(y != '_identifier')
+                    self.remove(y);
             });
-            return retVal;
+        },
+        remove: function(property) {
+            delete this[property];
+        },
+        update: function(options) {
+            var self = this;
+            if(__.is.string(options)) {
+                var values = style.split(' ');
+                __.all(values, function (p) {
+                    if (p != "") {
+                        var a = p.split('=');
+                        self[a[0].trim()] = a[1].replace('"', '').trim();
+                    }
+                });
+            } else if(__.is.object(options))
+                __.fuse(self, options);
         }
     });
 
