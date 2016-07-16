@@ -544,6 +544,45 @@
         }
     });
 
+    var ViewManager = __.class(function(options) {
+        this._identifier = 'Config Object';
+        this._active = null;
+        this.views = [];
+        this.onViewChange = function(view) {};
+        this.update(options);
+        var def = this.defaultView;
+        if(def)
+            this.activeView = def;
+    }, {
+        activeView: {
+            get: function() {
+                return this._active;
+            },
+            set: function(view) {
+                if(view) {
+                    __.all(this.views, x => x.active = (x.name == view.name));
+                    this._active = view;
+                    this.onViewChange(view);
+                }
+            }
+        },
+        defaultView: {
+            get: function() {
+                return __.search(this.views, x => x.default);
+            }
+        },
+        getView: function(name) {
+            return __.search(this.views, x => x.name == name);
+        },
+        setView: function(name) {
+            this.activeView = this.getView(name);
+        },
+        update: function(options) {
+            if(__.is.object(options))
+                __.fuse(this, options);
+        }
+    });
+
     // Event Based Stop Watch with stop, start and reset abilities along with an on tick event
     var StopWatch = __.class(function(options) {
         var self = this;
@@ -844,17 +883,20 @@
         }
     }, Enumerable);
     
-    __.lib.ConditionChain = ConditionChain;
-    __.lib.StringParser = StringParser;
-    __.lib.StyleParser = StyleParser;
-    __.lib.AttrParser = AttrParser;
-    __.lib.PrivateStore = PrivateStore;
-    __.lib.Config = Config;
-    __.lib.EventManager = EventManager;
-    __.lib.StopWatch = StopWatch;
-    __.lib.Enumerable = Enumerable;
-    __.lib.List = List;
-    __.lib.Dictionary = Dictionary;
+    __.fuse(__.lib, {
+        ConditionChain: ConditionChain,
+        StringParser: StringParser,
+        StyleParser: StyleParser,
+        AttrParser: AttrParser,
+        PrivateStore: PrivateStore,
+        Config: Config,
+        EventManager: EventManager,
+        ViewManager: ViewManager,
+        StopWatch: StopWatch,
+        Enumerable: Enumerable,
+        List: List,
+        Dictionary: Dictionary
+    });
 
     if( typeof module !== 'undefined' )
         module.exports = __;

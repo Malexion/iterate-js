@@ -2,6 +2,25 @@ var __ = require('./dist/iterate.js');
 
 //console.log(__);
 
+// View Manager Test
+
+// var viewer = new __.lib.ViewManager({
+// 	onViewChange: function(view) { console.log('View Change!'); },
+// 	views: [
+// 		{ name: 'View 1' },
+// 		{ name: 'View 2', default: true },
+// 		{ name: 'View 3' },
+// 		{ name: 'View 4' }
+// 	]
+// });
+
+// console.log(viewer.activeView);
+
+// viewer.setView('View 1');
+
+// console.log(viewer.activeView);
+// console.log(viewer.defaultView);
+	
 // String Parser Test
 
 // var target = '(this and that)',
