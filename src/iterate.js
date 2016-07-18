@@ -237,6 +237,50 @@
             this.details.status = __.getType(this.details.value) == type;
             return this;
         },
+        isArgs: function() {
+            this.details.status = __.is.args(this.details.value);
+            return this;
+        },
+        isArray: function() {
+            this.details.status = __.is.array(this.details.value);
+            return this;
+        },
+        isBoolean: function() {
+            this.details.status = __.is.bool(this.details.value);
+            return this;
+        },
+        isDate: function() {
+            this.details.status = __.is.date(this.details.value);
+            return this;
+        },
+        isFunction: function() {
+            this.details.status = __.is.function(this.details.value);
+            return this;
+        },
+        isNull: function() {
+            this.details.status = __.is.null(this.details.value);
+            return this;
+        },
+        isNaN: function() {
+            this.details.status = __.is.nan(this.details.value);
+            return this;
+        },
+        isNumber: function() {
+            this.details.status = __.is.number(this.details.value);
+            return this;
+        },
+        isObject: function() {
+            this.details.status = __.is.object(this.details.value);
+            return this;
+        },
+        isString: function() {
+            this.details.status = __.is.string(this.details.value);
+            return this;
+        },
+        isUndefined: function() {
+            this.details.status = __.is.undefined(this.details.value);
+            return this;
+        },
         last: function (func, n) {
             var type = __.getType(this.details.value);
             if (type == __.types.array || type == __.types.object) 
