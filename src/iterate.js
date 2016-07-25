@@ -406,19 +406,9 @@
         }
     });
 
-    // Base for __.fuse object.update() classes
-    var Updatable = __.class(function() {}, {
-        _identifier: {
-            get: function() {
-                return 'Config Object';
-            }
-        },
-        update: function() {}
-    });
-
     // Parsing element style params from json to string and vise versa
     var StyleParser = __.class(function(options) {
-        Updatable.call(this);
+        __.lib.Updatable.call(this);
         this.update(options);
     }, {
         asObject: {
@@ -463,11 +453,11 @@
             } else if(__.is.object(options))
                 __.fuse(self, options);
         }
-    }, Updatable);
+    }, __.lib.Updatable);
 
     // Parsing attribute params from json to string and vise versa
     var AttrParser = __.class(function(options) {
-        Updatable.call(this);
+        __.lib.Updatable.call(this);
         this.update(options);
     }, {
         asObject: {
@@ -512,11 +502,11 @@
             } else if(__.is.object(options))
                 __.fuse(self, options);
         }
-    }, Updatable);
+    }, __.lib.Updatable);
 
     // Configuration object with layering abilities that make extensive configs easy
     var Config = __.class(function(options) {
-        Updatable.call(this);
+        __.lib.Updatable.call(this);
         this._registry = {};
         this.update(options);
     }, {
@@ -548,11 +538,11 @@
             else
                 delete this._registry[key];
         }
-    }, Updatable);
+    }, __.lib.Updatable);
 
     // Simple little event manager
     var EventManager = __.class(function(events) {
-        Updatable.call(this);
+        __.lib.Updatable.call(this);
         this.update(events);
     }, {
         add: function(name, func) {
@@ -604,11 +594,11 @@
             if(__.is.object(options))
                 __.all(options, function(x, y) { self.add(y, x); });
         }
-    }, Updatable);
+    }, __.lib.Updatable);
 
     // Simple little view manager, great for Aurelia tabbed nav/dropdown control management
     var ViewManager = __.class(function(options) {
-        Updatable.call(this);
+        __.lib.Updatable.call(this);
         this._active = null;
         this.views = [];
         this.onViewChange = function(view) {};
@@ -644,7 +634,7 @@
             if(__.is.object(options))
                 __.fuse(this, options);
         }
-    }, Updatable);
+    }, __.lib.Updatable);
 
     // Event Based Stop Watch with stop, start and reset abilities along with an on tick event
     var StopWatch = __.class(function(options) {
@@ -949,7 +939,6 @@
     __.fuse(__.lib, {
         ConditionChain: ConditionChain,
         StringParser: StringParser,
-        Updatable: Updatable,
         StyleParser: StyleParser,
         AttrParser: AttrParser,
         PrivateStore: PrivateStore,
