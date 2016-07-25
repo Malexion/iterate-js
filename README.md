@@ -2,7 +2,7 @@
 
 ## Description
 
-Adds onto iterate-js-lite, methods: download, flow and the __.render.[...] section, along with many built in classes. 
+Adds onto the iterate-js-lite base model, methods: download, flow and the __.render.[...] section, along with many new built in classes. 
 
 Mostly experimental functions/classes ill suited for lite will stay in here.
 
@@ -226,6 +226,10 @@ Most valuable functions
   parser.parse(target);
   ```
 
+- `new __.lib.Updatable()`
+
+  Signifies to the __.fuse() method that this class or any class that inherits this should be updated via myObject.update(params) instead of overwritten or replaced.
+
 - `new __.lib.StyleParser()`
 
   Can parse css styles to json and back to string or vise versa.
@@ -245,6 +249,10 @@ Most valuable functions
 - `new __.lib.EventManager()`
 
   Simple event manager, add/remove/trigger/delegate. Event names are stored as lowercase and each event can have multiple hooks into it.
+
+- `new __.lib.ViewManager()`
+
+  Simple view manager, useful for aurelia tabbed controls or simply controlling and handling different views.
 
 - `new __.lib.StopWatch()`
 

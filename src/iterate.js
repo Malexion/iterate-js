@@ -713,7 +713,8 @@
         },
         getKeys: { 
             get: function() {
-                if (this.keys) return this.keys();
+                if (this.keys) 
+                    return this.keys();
                 return __.map(this, function (x, y) {
                     return y;
                 });
@@ -721,7 +722,8 @@
         },
         getValues: { 
             get: function() {
-                if (this.values) return this.values();
+                if (this.values) 
+                    return this.values();
                 return __.map(this, function (x, y) {
                     return x;
                 });
@@ -934,12 +936,10 @@
             });
         },
         containsKey: function(key) {
-            return __.is.set(this[key]);
+            return __.is.contains(this.getKeys, function(x) { return x == key; });
         },
         containsValue: function(value) {
-            return __.contains(this, function (x) {
-                return x == value;
-            });
+            return __.contains(this, function (x) { return x == value; });
         },
         remove: function(key) {
             delete this[key];
