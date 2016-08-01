@@ -613,7 +613,7 @@
             },
             set: function(view) {
                 if(view) {
-                    __.all(this.views, x => x.active = (x.name == view.name));
+                    __.all(this.views, function(x) { x.active = (x.name == view.name); });
                     this._active = view;
                     this.onViewChange(view);
                 }
@@ -621,11 +621,11 @@
         },
         defaultView: {
             get: function() {
-                return __.search(this.views, x => x.default);
+                return __.search(this.views, function(x) { return x.default; });
             }
         },
         getView: function(name) {
-            return __.search(this.views, x => x.name == name);
+            return __.search(this.views, function(x) { return x.name == name; });
         },
         setView: function(name) {
             this.activeView = this.getView(name);
@@ -633,6 +633,135 @@
         update: function(options) {
             if(__.is.object(options))
                 __.fuse(this, options);
+        }
+    }, __.lib.Updatable);
+
+    // Experimental Interface for aurelia binding a more controlled array: this.manager = new __.lib.ArrayManager();  <div repeat.for="item of manager.array"></div>
+    var ArrayManager = __.class(function(options) {
+        this.array = [];
+        this.config = {
+            array: [],
+            map: undefined,
+            filter: undefined,
+            sort: undefined
+        };
+        if(__.is.object(options))
+            __.fuse(this.config, options);
+
+        this.filters = {
+            limit: function(limit) {
+                var target = limit;
+                return function(x, y, z) {
+                    if(z.count == undefined)
+                        z.count = 0;
+                    z.count++;
+                    if(z.count == target)
+                        z.skip = z.stop = true;
+                    return x;
+                };
+            },
+            selected: function() {
+                return function(x, y, z) {
+                    if(!x.selected)
+                        z.skip = true;
+                    return x;
+                }
+            },
+            hidden: function() {
+                return function(x, y, z) {
+                    if(x.hidden)
+                        z.skip = true;
+                    return x;
+                }
+            }
+        };
+        this.refresh();
+    }, {
+        add: function(item) {
+            if(__.is.array(item))
+                this.config.array = this.config.array.slice().concat(item);
+            else
+                this.config.array.push(item);
+            this.refresh();
+        },
+        addAt: function(item, index) {
+            if(__.is.array(item))
+                Array.prototype.splice.apply(this.config.array, [ index, 0 ].concat(item));
+            else
+                this.config.array.splice(index, 0, item);
+            this.refresh();
+        },
+        clear: function() {
+            this.array = [];
+            this.config = {
+                array: [],
+                map: undefined,
+                filter: undefined,
+                sort: undefined
+            };
+        },
+        contains: function(func) {
+            if(__.is.function(func))
+                return __.contains(this.array.slice(), func);
+            return false;
+        },
+        count: { 
+            get: function() { 
+                return this.array.length; 
+            } 
+        },
+        filter: function(func) {
+            if(__.is.function(func))
+                this.config.filter = func;
+            else
+                this.config.filter = undefined;
+            this.refresh();
+        },
+        indexOf: function(item) {
+            return this.array.indexOf(item);
+        },
+        map: function(func) {
+            if(__.is.function(func))
+                this.config.map = func;
+            else
+                this.config.map = undefined;
+            this.refresh();
+        },
+        refresh: function() {
+            var temp = this.config.array;
+            if(__.is.set(this.config.sort))
+                temp = __.sort(temp.slice(), this.config.sort);
+            if(__.is.set(this.config.filter))
+                temp = __.filter(temp, this.config.filter);
+            if(__.is.set(this.config.map))
+                temp = __.map(temp, this.config.map);
+            this.array = temp;
+        },
+        remove: function(item) {
+            var idx = this.indexOf(item);
+            if(idx > -1)
+                this.removeAt(idx);
+        },
+        removeAt: function(index) {
+            this.config.array = this.config.array.slice().splice(index, 1);
+            this.refresh();
+        },
+        search: function(func) {
+            return __.search(this.array.slice(), func);
+        },
+        sort: function(options) {
+            if(__.is.set(options))
+                this.config.sort = options;
+            else
+                this.config.sort = undefined;
+            this.refresh();
+        },
+        update: function(options) {
+            if(__.is.array(options))
+                this.config.array = options;
+            else if(__.is.object(options))
+                __.fuse(this.config, options);
+            this.refresh();
         }
     }, __.lib.Updatable);
 
@@ -896,7 +1025,7 @@
             x = __.map(x, func);
             return new List(x);
         },
-        sort: function(func, options) {
+        sort: function(options) {
             var x = this.toArray();
             x = __.sort(x, options);
             var self = this;
@@ -945,6 +1074,7 @@
         Config: Config,
         EventManager: EventManager,
         ViewManager: ViewManager,
+        ArrayManager: ArrayManager,
         StopWatch: StopWatch,
         Enumerable: Enumerable,
         List: List,
