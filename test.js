@@ -4,39 +4,39 @@ var __ = require('./dist/iterate.js');
 
 // ArrayManager Test
 
-var manager = new __.lib.ArrayManager();
+// var manager = new __.lib.ArrayManager();
 
-console.log(manager);
+// console.log(manager);
 
-manager.add([ 1, 2, 3, 4, 5 ]);
+// manager.add([ 1, 2, 3, 4, 5 ]);
 
-console.log(manager.array);
+// console.log(manager.array);
 
-manager.filter(x => x < 4);
+// manager.filter(x => x < 4);
 
-console.log(manager.array);
+// console.log(manager.array);
 
-manager.filter(x => x >= 4);
+// manager.filter(x => x >= 4);
 
-console.log(manager.array);
+// console.log(manager.array);
 
-manager.filter();
+// manager.filter();
 
-console.log(manager.array);
+// console.log(manager.array);
 
-manager.filter(manager.filters.limit(2));
-manager.add(6);
+// manager.filter(manager.filters.limit(2));
+// manager.add(6);
 
-console.log(manager.array);
+// console.log(manager.array);
 
-manager.filter();
-manager.sort({ dir: 'desc' });
+// manager.filter();
+// manager.sort({ dir: 'desc' });
 
-console.log(manager.array);
+// console.log(manager.array);
 
-manager.sort();
+// manager.sort();
 
-console.log(manager.array);
+// console.log(manager.array);
 
 // Updatable Test
 
