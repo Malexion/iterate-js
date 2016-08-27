@@ -2,6 +2,108 @@ var __ = require('./dist/iterate.js');
 
 //console.log(__);
 
+// var _createClass = function () { 
+// 	function defineProperties(target, props) { 
+// 		for (var i = 0; i < props.length; i++) { 
+// 			var descriptor = props[i]; 
+// 			descriptor.enumerable = descriptor.enumerable || false; 
+// 			descriptor.configurable = true; 
+// 			if ("value" in descriptor) 
+// 				descriptor.writable = true; 
+// 			Object.defineProperty(target, descriptor.key, descriptor); 
+// 		} 
+// 	} 
+// 	return function (Constructor, protoProps, staticProps) { 
+// 		if (protoProps) 
+// 			defineProperties(Constructor.prototype, protoProps); 
+// 		if (staticProps) defineProperties(Constructor, staticProps); 
+// 		return Constructor; 
+// 	}; 
+// }();
+
+// function _possibleConstructorReturn(self, call) { 
+// 	if (!self) { 
+// 		throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); 
+// 	} 
+// 	return call && (typeof call === "object" || typeof call === "function") ? call : self; 
+// }
+
+// function _inherits(subClass, superClass) { 
+// 	if (typeof superClass !== "function" && superClass !== null) { 
+// 		throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); 
+// 	} 
+// 	subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); 
+// 	if (superClass) 
+// 		Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; 
+// }
+
+// function _classCallCheck(instance, Constructor) { 
+// 	if (!(instance instanceof Constructor)) { 
+// 		throw new TypeError("Cannot call a class as a function"); 
+// 	} 
+// }
+
+
+// var generateClass = function (construct, methods, inherit) {
+//     var customFuse = function customFuse(target, properties) {
+//         if(Object.keys != undefined) {
+//             var keys = Object.keys(properties);
+//             for(var key in keys) {
+//                 var desc = Object.getOwnPropertyDescriptor(properties, key);
+//                 if(desc) {
+//                 	Object.defineProperty(target, key, desc);
+//                 } else
+//                     target[key] = properties[key];
+//             }
+//         } else {
+//             me.all(properties, function (x, y) {
+//                 if (me.is.function(x)) 
+//                     target[y] = x;
+//                 else if (me.is.object(x)) {
+//                     // Allows user to set getters/setters
+//                     Object.defineProperty(target, y, me.fuse({
+//                         enumerable: false,
+//                         configurable: true
+//                     }, x));
+//                 }
+//             }, true);
+//         }
+//     };
+//     var proto = methods || {};
+//     if (inherit) {
+//         if (__.is.array(inherit)) 
+//             __.all(inherit, function (x) {
+//                 proto = customFuse(Object.create(x.prototype), proto);
+//             });
+//         else 
+//             proto = customFuse(Object.create(inherit.prototype), proto);
+//     } 
+//     else 
+//         proto = customFuse({}, proto);
+//     construct.prototype = proto;
+//     construct.prototype.constructor = construct;
+//     return construct;
+// };
+
+// var sampleClass = generateClass(function() {
+// 	__.lib.Updatable.call(this);
+// }, {}, [ __.lib.Enumerable, __.lib.Updatable ]);
+
+// var sample = new sampleClass();
+// console.log(sample);
+// console.log(sample.update);
+// console.log(sample.count);
+
+// var list = new __.lib.List([ 1, 2, 3 ]);
+
+// list.push(2);
+
+// console.log(list);
+// console.log(list.length);
+// console.log(list.count);
+
+// __.all(list, (x, y) => console.log(y));
+
 // ArrayManager Test
 
 // var manager = new __.lib.ArrayManager();

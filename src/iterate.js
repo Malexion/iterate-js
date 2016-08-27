@@ -823,6 +823,30 @@
         };
     });
 
+    // Extendable array base
+    var arrayStore = new PrivateStore();
+    var ArrayExt = __.class(function() {
+        arrayStore.bind(this);
+        arrayStore.context(this, function(store) {
+            store.length = 0;
+        });
+        Array.call(this);
+        var self = this,
+            process = arguments;
+        if(__.is.array(arguments[0]))
+            process = arguments[0];
+        __.all(process, function(x) { self.push(x); });
+    }, {
+        length: { 
+            get: function() { 
+                return arrayStore.get(this, 'length'); 
+            },
+            set: function(value) {
+                arrayStore.set(this, 'length', value); 
+            }
+        }
+    }, Array);
+
     // Ended up being a polyfill for missing object functions .keys() .values() etc but helpful
     var Enumerable = __.class(function() {}, {
         count: { 
@@ -832,8 +856,8 @@
         },
         getKeys: { 
             get: function() {
-                if (this.keys) 
-                    return this.keys();
+                if (Object.keys) 
+                    return Object.keys(this);
                 return __.map(this, function (x, y) {
                     return y;
                 });
@@ -841,8 +865,8 @@
         },
         getValues: { 
             get: function() {
-                if (this.values) 
-                    return this.values();
+                if (Object.values) 
+                    return Object.values(this);
                 return __.map(this, function (x, y) {
                     return x;
                 });
@@ -1076,6 +1100,7 @@
         ViewManager: ViewManager,
         ArrayManager: ArrayManager,
         StopWatch: StopWatch,
+        ArrayExt: ArrayExt,
         Enumerable: Enumerable,
         List: List,
         Dictionary: Dictionary
