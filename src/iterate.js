@@ -639,14 +639,16 @@
     // Experimental Interface for aurelia binding a more controlled array: this.manager = new __.lib.ArrayManager();  <div repeat.for="item of manager.array"></div>
     var ArrayManager = __.class(function(options) {
         this.array = [];
-        this.multiselect = false;
-        this.selection = null;
-        this.map = undefined;
-        this.filter = undefined;
-        this.sort = undefined;
-
+        this.config = {
+            array: [],
+            multiselect: false,
+            selection: null,
+            map: undefined,
+            filter: undefined,
+            sort: undefined
+        };
         if(__.is.object(options))
-            __.fuse(this, options);
+            __.fuse(this.config, options);
 
         this.filters = {
             limit: function(limit) {
@@ -679,24 +681,21 @@
     }, {
         add: function(item) {
             if(__.is.array(item))
-                this.array = this.array.slice().concat(item);
+                this.config.array = this.config.array.slice().concat(item);
             else
-                this.array.push(item);
+                this.config.array.push(item);
             this.refresh();
         },
         addAt: function(item, index) {
             if(__.is.array(item))
-                Array.prototype.splice.apply(this.array, [ index, 0 ].concat(item));
+                Array.prototype.splice.apply(this.config.array, [ index, 0 ].concat(item));
             else
-                this.array.splice(index, 0, item);
+                this.config.array.splice(index, 0, item);
             this.refresh();
         },
         clear: function() {
             this.array = [];
-            this.selection = null;
-            this.map = undefined;
-            this.filter = undefined;
-            this.sort = undefined;
+            this.config.array = [];
         },
         contains: function(func) {
             if(__.is.function(func))
@@ -710,9 +709,9 @@
         },
         filter: function(func) {
             if(__.is.function(func))
-                this.filter = func;
+                this.config.filter = func;
             else
-                this.filter = undefined;
+                this.config.filter = undefined;
             this.refresh();
         },
         indexOf: function(item) {
@@ -720,19 +719,19 @@
         },
         map: function(func) {
             if(__.is.function(func))
-                this.map = func;
+                this.config.map = func;
             else
-                this.map = undefined;
+                this.config.map = undefined;
             this.refresh();
         },
         refresh: function() {
-            var temp = this.array;
-            if(__.is.set(this.sort))
-                temp = __.sort(temp.slice(), this.sort);
-            if(__.is.set(this.filter))
-                temp = __.filter(temp, this.filter);
-            if(__.is.set(this.map))
-                temp = __.map(temp, this.map);
+            var temp = this.config.array;
+            if(__.is.set(this.config.sort))
+                temp = __.sort(temp.slice(), this.config.sort);
+            if(__.is.set(this.config.filter))
+                temp = __.filter(temp, this.config.filter);
+            if(__.is.set(this.config.map))
+                temp = __.map(temp, this.config.map);
             this.array = temp;
         },
         remove: function(item) {
@@ -741,7 +740,7 @@
                 this.removeAt(idx);
         },
         removeAt: function(index) {
-            this.array = this.array.slice().splice(index, 1);
+            this.config.array = this.config.array.slice().splice(index, 1);
             this.refresh();
         },
         search: function(func) {
@@ -749,9 +748,9 @@
         },
         sort: function(options) {
             if(__.is.set(options))
-                this.sort = options;
+                this.config.sort = options;
             else
-                this.sort = undefined;
+                this.config.sort = undefined;
             this.refresh();
         },
         select: function(items) {
@@ -763,7 +762,7 @@
             else
                 items.selected = true;
 
-            this.selection = __[this.multiselect ? 'filter':'search'](this.array.slice(), x => x.selected);
+            this.config.selection = __[this.multiselect ? 'filter':'search'](this.array.slice(), x => x.selected);
         },
         unselect: function(items) {
             if(!this.multiselect)
@@ -772,13 +771,13 @@
             if(__.is.array(items))
                 __.all(items, x => x.selected = false);
 
-            this.selection = __[this.multiselect ? 'filter':'search'](this.array.slice(), x => x.selected);
+            this.config.selection = __[this.multiselect ? 'filter':'search'](this.array.slice(), x => x.selected);
         },
         update: function(options) {
             if(__.is.array(options))
-                this.array = options;
+                this.config.array = options;
             else if(__.is.object(options))
-                __.fuse(this, options);
+                __.fuse(this.config, options);
             this.refresh();
         }
     }, __.lib.Updatable);
