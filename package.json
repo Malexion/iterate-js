@@ -1,6 +1,6 @@
 {
   "name": "iterate-js",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Collection of data processing tools and experiments. Designed for use with aurelia/node.js",
   "main": "index.js",
   "scripts": {
