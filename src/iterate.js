@@ -515,7 +515,7 @@
             if (__.is.object(options)) {
                 if (options) {
                     if (deep) 
-                        __.fuse(self, options, true);
+                        __.fuse(self, options, { deep: true });
                     else 
                         __.fuse(self, options);
                     __.all(self._registry, function (func, key, event) {

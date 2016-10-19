@@ -32,6 +32,6 @@
     "gulp-uglify": "^1.5.3"
   },
   "dependencies": {
-    "iterate-js-lite": "^1.0.14"
+    "iterate-js-lite": "^1.0.15"
   }
 }
