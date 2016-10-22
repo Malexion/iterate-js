@@ -308,10 +308,11 @@
 	"buffers":
 	[
 		{
-			"file": ".gitignore",
+			"file": "src/iterate.js",
 			"settings":
 			{
-				"buffer_size": 87,
+				"buffer_size": 41314,
+				"encoding": "UTF-8 with BOM",
 				"line_ending": "Windows"
 			}
 		}
@@ -357,10 +358,12 @@
 	},
 	"expanded_folders":
 	[
-		"/C/Repositories/iterate-js"
+		"/C/Repositories/iterate-js",
+		"/C/Repositories/iterate-js/src"
 	],
 	"file_history":
 	[
+		"/C/Repositories/iterate-js/.gitignore",
 		"/C/Users/Adam/Desktop/mti.spa/client/src/custom/elements/bootstrap/search-box.js",
 		"/C/Users/Adam/Desktop/mti.spa/client/package.json",
 		"/C/Users/Adam/Desktop/mti.spa/client/src/custom/elements/bootstrap/aurelia-table.html",
@@ -487,12 +490,11 @@
 		"/C/Users/Adam/Desktop/skeleton-esnext-webpack/src/aurelia-extended/form/controls/radio.js",
 		"/C/Users/Adam/Desktop/skeleton-esnext-webpack/src/aurelia-extended/form/controls/bar.html",
 		"/C/Users/Adam/Desktop/skeleton-esnext-webpack/src/aurelia-extended/form/controls/bar.js",
-		"/C/Users/Adam/Desktop/skeleton-esnext-webpack/src/aurelia-extended/form/controls/password.html",
-		"/C/Users/Adam/Desktop/skeleton-esnext-webpack/src/aurelia-extended/form/controls/password.js"
+		"/C/Users/Adam/Desktop/skeleton-esnext-webpack/src/aurelia-extended/form/controls/password.html"
 	],
 	"find":
 	{
-		"height": 23.0
+		"height": 34.0
 	},
 	"find_in_files":
 	{
@@ -508,6 +510,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			".fuse",
 			"emitEvent",
 			"__.class",
 			"#applicationHost",
@@ -629,24 +632,26 @@
 			[
 				{
 					"buffer": 0,
-					"file": ".gitignore",
+					"file": "src/iterate.js",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 87,
+						"buffer_size": 41314,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								87,
-								87
+								4613,
+								4613
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
+							"syntax": "Packages/JavaScriptNext - ES6 Syntax/JavaScriptNext.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
