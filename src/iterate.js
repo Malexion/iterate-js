@@ -3,35 +3,6 @@
 (function() {
     var __ = require('iterate-js-lite');
 
-    __.download = function(content, fileName, type) {
-        /// <summary>Downloads a file from an array of strings given a name and type.</summary>
-        /// <param type="Array" name="content">Array of strings joined together for the files content.</param>
-        /// <param type="String" name="fileName">Name of the file without the extension which is added on by the third param.</param>
-        /// <param type="String" name="type">File type, only current choice is 'csv'.</param>
-        var fileMap = {
-            'csv': { ext: '.csv', encoding: 'data:application/csv;charset=utf-8', parse: function(data) { return __.is.array(data) ? data.join('') : data; } },
-            'json': { ext: '.json', encoding: 'data:application/json;charset=utf-8', parse: function(data) { return __.is.string(data) ? data : JSON.stringify(data); } }
-        };
-        var fileType = fileMap[type.toLowerCase()];
-        var data = fileType.parse(content);
-        if (window.navigator.userAgent.indexOf("MSIE ") > -1 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
-            var IEwindow = window.open('', '_blank');
-            IEwindow.document.open("text/csv", "replace");
-            IEwindow.document.write(data);
-            IEwindow.document.close();
-            IEwindow.document.execCommand('SaveAs', true, fileName + fileType.ext);
-            IEwindow.close();
-        } else {
-            var uri = fileType.encoding + ',' + encodeURIComponent(data);
-            var link = document.createElement("a");
-            link.href = uri;
-            link.style = "visibility:hidden";
-            link.download = fileName + fileType.ext;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    };
     __.flow = function (obj) {
         /// <summary> Returns a ConditionChain object with additional function and operations based on the type of object passed in.</summary>
         /// <param type="Value" name="obj">Value to be checked and evaluated.</param>
@@ -152,12 +123,6 @@
                 this.details.value = __.math.average(this.details.value, func);
             return this;
         },
-        call: function (args, chain) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
-                __.call(this.details.value, args, chain);
-            return this;
-        },
         contains: function (func) {
             if (this.details.status) {
                 var type = __.getType(this.details.value);
@@ -193,13 +158,13 @@
                 this.details.value = __.filter(this.details.value, func);
             return this;
         },
-        first: function (func, n) {
+        first: function (options) {
             var type = __.getType(this.details.value);
             if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.first(this.details.value, func, n);
+                this.details.value = __.first(this.details.value, options);
             return this;
         },
-        getProperty: function (propChain) {
+        prop: function (propChain) {
             this.details.value = __.prop(this.details.value, propChain);
             return this;
         },
@@ -281,10 +246,10 @@
             this.details.status = __.is.undefined(this.details.value);
             return this;
         },
-        last: function (func, n) {
+        last: function (options) {
             var type = __.getType(this.details.value);
             if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.last(this.details.value, func, n);
+                this.details.value = __.last(this.details.value, options);
             return this;
         },
         map: function (func, options) {
@@ -357,10 +322,7 @@
     }, {
         parse: function(str) {
             var self = this,
-                options = __.flow(self.options)
-                            .isSet()
-                            .update({ skip: 0, bubble: true, ignoreCase: true, defaultAction: function() {  } })
-                            .value(),
+                options = __.options({ skip: 0, bubble: true, ignoreCase: true, defaultAction: function() {  } }),
                 char = '',
                 idx = 0,
                 func = function() { },
@@ -639,16 +601,15 @@
     // Experimental Interface for aurelia binding a more controlled array: this.manager = new __.lib.ArrayManager();  <div repeat.for="item of manager.array"></div>
     var ArrayManager = __.class(function(options) {
         this.array = [];
-        this.config = {
+        this.config = __.options({
             array: [],
             multiselect: false,
             selection: null,
             map: undefined,
             filter: undefined,
-            sort: undefined
-        };
-        if(__.is.object(options))
-            __.fuse(this.config, options);
+            sort: undefined,
+            debounce: 50
+        }, options);
 
         this.filters = {
             limit: function(limit) {
@@ -677,7 +638,31 @@
                 }
             }
         };
-        this.refresh();
+        var self = this;
+        if(self.config.debounce == 0) {
+            self.refresh = () => {
+                var temp = self.config.array;
+                if(__.is.set(self.config.sort))
+                    temp = __.sort(temp.slice(), self.config.sort);
+                if(__.is.set(self.config.filter))
+                    temp = __.filter(temp, self.config.filter);
+                if(__.is.set(self.config.map))
+                    temp = __.map(temp, self.config.map);
+                self.array = temp;
+            };
+        } else {
+            self.refresh = __.debounce(() => {
+                var temp = self.config.array;
+                if(__.is.set(self.config.sort))
+                    temp = __.sort(temp.slice(), self.config.sort);
+                if(__.is.set(self.config.filter))
+                    temp = __.filter(temp, self.config.filter);
+                if(__.is.set(self.config.map))
+                    temp = __.map(temp, self.config.map);
+                self.array = temp;
+            }, 50);
+        }
+        self.refresh();
     }, {
         add: function(item) {
             if(__.is.array(item))
@@ -724,16 +709,6 @@
                 this.config.map = undefined;
             this.refresh();
         },
-        refresh: function() {
-            var temp = this.config.array;
-            if(__.is.set(this.config.sort))
-                temp = __.sort(temp.slice(), this.config.sort);
-            if(__.is.set(this.config.filter))
-                temp = __.filter(temp, this.config.filter);
-            if(__.is.set(this.config.map))
-                temp = __.map(temp, this.config.map);
-            this.array = temp;
-        },
         remove: function(item) {
             var idx = this.indexOf(item);
             if(idx > -1)
@@ -759,7 +734,7 @@
 
             if(__.is.array(items))
                 __.all(items, x => x.selected = true);
-            else
+            else if(__.is.object(items))
                 items.selected = true;
 
             this.config.selection = __[this.multiselect ? 'filter':'search'](this.array.slice(), x => x.selected);
@@ -770,6 +745,8 @@
 
             if(__.is.array(items))
                 __.all(items, x => x.selected = false);
+            else if(__.is.object(items))
+                items.selected = false;
 
             this.config.selection = __[this.multiselect ? 'filter':'search'](this.array.slice(), x => x.selected);
         },
@@ -788,12 +765,10 @@
         self.lastStarted = 0;
         self.lapsedTime = 0;
         self.clock = null;
-        self.settings = {
+        self.settings = __.options({
             onTick: function onTick(time) {},
             tickRate: 500
-        };
-        if(__.is.object(options))
-            __.fuse(self.settings, options);
+        }, options);
 
         self.update = function () {
             self.settings.onTick(self.getTime());
