@@ -137,6 +137,12 @@
                 this.details.value = __.count(this.details.value);
             return this;
         },
+        distinct: function(func) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object) 
+                this.details.value = __.distinct(this.details.value, func);
+            return this;
+        },
         equals: function (value) {
             if (this.details.status) 
                 this.details.status = (this.details.value == value);
@@ -182,6 +188,12 @@
         else: function (func) {
             if (!this.details.status) 
                 func(this.details);
+            return this;
+        },
+        intersect: function(obj, func) {
+            var type = __.getType(this.details.value);
+            if (type == __.types.array || type == __.types.object) 
+                this.details.value = __.intersect(this.details.value, obj, func);
             return this;
         },
         isDefined: function () {
