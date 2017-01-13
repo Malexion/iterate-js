@@ -487,16 +487,11 @@
         update: function(options, deep) {
             var self = this;
             if (__.is.object(options)) {
-                if (options) {
-                    if (deep) 
-                        __.fuse(self, options, { deep: true });
-                    else 
-                        __.fuse(self, options);
-                    __.all(self._registry, function (func, key, event) {
-                        if (__.is.function(func)) 
-                            func(self, options);
-                    });
-                }
+                __.fuse(self, options, { deep: Boolean(deep) });
+                __.all(self._registry, function (func, key, event) {
+                    if (__.is.function(func)) 
+                        func(self, options);
+                });
             }
         },
         clear: function() {
@@ -542,12 +537,23 @@
                 };
             }
         },
+        on: function(name, func) {
+            this.add(name, func);
+        },
+        off: function(name, func) {
+            this.remove(name, func);
+        },
         remove: function(name, func) {
-            var eventName = name.toLowerCase();
-            if(!__.is.set(func))
-                delete this[eventName];
-            else
-                this[eventName] = __.remove(this[eventName], func);
+            if(name) {
+                var eventName = name.toLowerCase();
+                if(!__.is.set(func))
+                    delete this[eventName];
+                else
+                    this[eventName] = __.remove(this[eventName], func);
+            } else {
+                var self = this;
+                __.all(self, function(func, key) { delete self[key]; });
+            }
         },
         trigger: function(name, data) {
             var eventName = name.toLowerCase();
@@ -562,6 +568,7 @@
                         __.all(events, function(func) { func(data); });
                 };
             }
+            return function() {};
         },
         update: function(options) {
             var self = this;
@@ -610,10 +617,32 @@
         }
     }, __.lib.Updatable);
 
+    // Simple object template engine, ties any object functions this context to the templated object as well
+    var Model = __.class(function(defaults) {
+        this.defaults = defaults;
+    }, {
+        all: function(obj) {
+            var self = this;
+            return __.map(obj, function(x) { return self.create(x); });
+        },
+        create: function(options) {
+            var model = __.fuse(this.cloneDefaults(), options);
+            __.all(model, function(value, key) {
+                if(__.is.function(value))
+                    model[key] = value.bind(model); // Configure this context
+            });
+            return model;
+        },
+        cloneDefaults: function() {
+            return __.fuse({}, this.defaults, { deep: true });
+        }
+    });
+
     // Experimental Interface for aurelia binding a more controlled array: this.manager = new __.lib.ArrayManager();  <div repeat.for="item of manager.array"></div>
     var ArrayManager = __.class(function(options) {
-        this.array = [];
-        this.config = __.options({
+        var self = this;
+        self.array = [];
+        self.config = __.options({
             array: [],
             multiselect: false,
             selection: null,
@@ -623,7 +652,7 @@
             debounce: 50
         }, options);
 
-        this.filters = {
+        self.filters = {
             limit: function(limit) {
                 var target = limit;
                 return function(x, y, z) {
@@ -650,30 +679,19 @@
                 }
             }
         };
-        var self = this;
-        if(self.config.debounce == 0) {
-            self.refresh = () => {
-                var temp = self.config.array;
-                if(__.is.set(self.config.sort))
-                    temp = __.sort(temp.slice(), self.config.sort);
-                if(__.is.set(self.config.filter))
-                    temp = __.filter(temp, self.config.filter);
-                if(__.is.set(self.config.map))
-                    temp = __.map(temp, self.config.map);
-                self.array = temp;
-            };
-        } else {
-            self.refresh = __.debounce(() => {
-                var temp = self.config.array;
-                if(__.is.set(self.config.sort))
-                    temp = __.sort(temp.slice(), self.config.sort);
-                if(__.is.set(self.config.filter))
-                    temp = __.filter(temp, self.config.filter);
-                if(__.is.set(self.config.map))
-                    temp = __.map(temp, self.config.map);
-                self.array = temp;
-            }, 50);
-        }
+
+        var refresh = () => {
+            var temp = self.config.array;
+            if(__.is.set(self.config.sort))
+                temp = __.sort(temp, self.config.sort);
+            if(__.is.set(self.config.filter))
+                temp = __.filter(temp, self.config.filter);
+            if(__.is.set(self.config.map))
+                temp = __.map(temp, self.config.map);
+            self.array = temp;
+        };
+
+        self.refresh = self.config.debounce == 0 ? refresh : __.debounce(refresh, self.config.debounce);
         self.refresh();
     }, {
         add: function(item) {
@@ -898,177 +916,6 @@
         }
     });
 
-    // A significantly less efficent inheritable array class
-    var List = __.class(function(items) {
-        Enumerable.call(this);
-        this.addRange(items);
-    }, {
-        add: function(item, options) {
-            var hasOptions = options && options.start,
-                start = hasOptions ? options.start : 0;
-            while (this.hasOwnProperty(start)) {
-                start++;
-            }this[start] = item;
-            if (hasOptions) options.start = start;
-            return this;
-        },
-        addRange: function(items) {
-            if (__.is.array(items) || items instanceof Enumerable) {
-                var self = this,
-                    opt = { start: 0 };
-                __.all(items, function (x) {
-                    return self.add(x, opt);
-                });
-            }
-            return this;
-        },
-        clear: function() {
-            var self = this;
-            __.all(self, function (x, y) {
-                delete self[y];
-            });
-            return self;
-        },
-        contains: function(func) {
-            if (__.is.function(func)) 
-                return __.contains(this, func);
-            return __.contains(this, function (x) {
-                return x == func;
-            });
-        },
-        count: {
-            get: function() {
-                return this.getKeys.length;
-            },
-            set: function(value) {
-                var count = this.count;
-                if (count > value) this.removeRange(value - 1);
-            }
-        },
-        distinct: function(func) {
-            var x = this.toArray();
-            x = __.distinct(x, func);
-            return new List(x);
-        },
-        indexOf: function(item) {
-            return __.search(this, function (x) {
-                return x == item;
-            }, { getKey: true });
-        },
-        insert: function(key, item) {
-            var self = this,
-                idx = parseInt(key),
-                keys = __.sort(__.filter(__.map(this.getKeys, function (x) {
-                    return parseInt(x);
-                }), function (x) {
-                    return x >= idx;
-                }), { dir: 'desc' });
-            __.all(keys, function (x) {
-                self[x + 1] = self[x];
-            });
-            self[idx] = item;
-            return this;
-        },
-        insertRange: function(key, items) {
-            var self = this,
-                idx = parseInt(key),
-                count = items.length != undefined ? items.length : items.count,
-                keys = __.sort(__.filter(__.map(this.getKeys, function (x) {
-                return parseInt(x);
-            }), function (x) {
-                return x >= idx;
-            }), { dir: 'desc' });
-            __.all(keys, function (x) {
-                self[x + count] = self[x];
-            });
-            __.all(items, function (x) {
-                self[idx] = x;idx++;
-            });
-            return this;
-        },
-        getRange: function(start, end) {
-            var self = this,
-                key = 0,
-                keys = __.map(self.getKeys, function (x) {
-                return parseInt(x);
-            }),
-                begin = parseInt(start),
-                end = end ? parseInt(end) : keys[keys.length - 1];
-            return __.map(keys, function (x, y, z) {
-                if (y >= begin && y <= end) return x;
-                z.skip = true;
-            });
-        },
-        remove: function(item) {
-            var idx = this.indexOf(item);
-            if (idx != null) this.removeAt(idx);
-            return this;
-        },
-        removeAt: function(key) {
-            var self = this,
-                idx = parseInt(key),
-                keys = __.filter(__.map(this.getKeys, function (x) {
-                return parseInt(x);
-            }), function (x) {
-                return x > idx;
-            });
-            delete this[idx];
-            __.all(keys, function (x) {
-                return self[x - 1] = self[x];
-            }); // shift all after keys down one
-            delete this[keys[keys.length - 1]]; // remove tail copy
-            return this;
-        },
-        removeRange: function(start, end) {
-            var self = this,
-                keys = __.map(this.getKeys, function (x) {
-                return parseInt(x);
-            }),
-                begin = parseInt(start),
-                end = end ? parseInt(end) : keys[keys.length - 1];
-            __.all(__.filter(keys, function (x) {
-                return x >= begin && x <= end;
-            }), function (x) {
-                return delete self[x];
-            });
-            if (end < keys[keys.length - 1]) {
-                __.all(__.filter(keys, function (x) {
-                    return x > end;
-                }), function (x) {
-                    return self[begin++] = self[x];
-                });
-                delete self[keys[keys.length - 1]]; // remove tail copy
-            }
-            return this;
-        },
-        search: function(func) {
-            if (__.is.function(func)) 
-                return __.search(this, func);
-            return __.search(this, function (x) {
-                return x == func;
-            });
-        },
-        select: function(func) {
-            var x = this.toArray();
-            x = __.map(x, func);
-            return new List(x);
-        },
-        sort: function(options) {
-            var x = this.toArray();
-            x = __.sort(x, options);
-            var self = this;
-            __.all(x, function (v, k) {
-                return self[k] = x;
-            });
-            return this;
-        },
-        where: function(func) {
-            var x = this.toArray();
-            x = __.filter(x, func);
-            return new List(x);
-        },
-    }, Enumerable);
-
     // Basic object hash table with syntactic sugar
     var Dictionary = __.class(function() {
         Enumerable.call(this);
@@ -1100,13 +947,13 @@
         AttrParser: AttrParser,
         PrivateStore: PrivateStore,
         Config: Config,
+        Model: Model,
         EventManager: EventManager,
         ViewManager: ViewManager,
         ArrayManager: ArrayManager,
         StopWatch: StopWatch,
         ArrayExt: ArrayExt,
         Enumerable: Enumerable,
-        List: List,
         Dictionary: Dictionary
     });
 
