@@ -2,6 +2,23 @@ var __ = require('./dist/iterate.js');
 
 //console.log(__.render);
 
+// var SampleClass = __.class(function() {
+//     var self = this;
+//     self.events = new __.lib.EventManager();
+//     self.events.read(self);
+// }, {
+//     onClick: function(event) {
+//         console.log(event);
+//     },
+//     attached: function() {
+//         var done = this.events.trigger('click');
+//         done();
+//     }
+// });
+
+// var vm = new SampleClass();
+// vm.attached();
+
 // var _createClass = function () { 
 // 	function defineProperties(target, props) { 
 // 		for (var i = 0; i < props.length; i++) { 

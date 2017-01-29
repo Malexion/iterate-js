@@ -512,20 +512,21 @@
     // Simple little event manager
     var EventManager = __.class(function(events) {
         __.lib.Updatable.call(this);
+        this.hooks = {};
         this.update(events);
     }, {
         add: function(name, func) {
             var eventName = name.toLowerCase();
-            if(!__.is.set(this[eventName]))
-                this[eventName] = [];
+            if(!__.is.set(this.hooks[eventName]))
+                this.hooks[eventName] = [];
             if(__.is.array(func))
-                this[eventName] = this[eventName].concat(func);
+                this.hooks[eventName] = this.hooks[eventName].concat(func);
             else
-                this[eventName].push(func);
+                this.hooks[eventName].push(func);
         },
         delegate: function(name, data, timeout) {
             var eventName = name.toLowerCase();
-            var events = this[eventName];
+            var events = this.hooks[eventName];
             if(__.is.array(events)) {
                 var data = { event: eventName, before: true, after: false, isCancelled: false, data: data };
                 __.all(events, function(func) { setTimeout(function() { func(data); }, (timeout) ? timeout : 10); });
@@ -543,21 +544,32 @@
         off: function(name, func) {
             this.remove(name, func);
         },
+        read: function(obj) {
+            var str = '',
+                self = this;
+
+            __.all(obj, (func, key) => {
+                str = key.toLowerCase();
+
+                if(str.substring(0, 2) == 'on' && str != 'on' && __.is.function(func))
+                    self.add(str.replace('on', ''), func.bind(obj));
+            }, true);
+        },
         remove: function(name, func) {
             if(name) {
                 var eventName = name.toLowerCase();
                 if(!__.is.set(func))
-                    delete this[eventName];
+                    delete this.hooks[eventName];
                 else
-                    this[eventName] = __.remove(this[eventName], func);
+                    this.hooks[eventName] = __.remove(this.hooks[eventName], func);
             } else {
                 var self = this;
-                __.all(self, function(func, key) { delete self[key]; });
+                __.all(self, function(func, key) { delete self.hooks[key]; });
             }
         },
         trigger: function(name, data) {
             var eventName = name.toLowerCase();
-            var events = this[eventName];
+            var events = this.hooks[eventName];
             if(__.is.array(events)) {
                 var data = { event: eventName, before: true, after: false, isCancelled: false, data: data };
                 __.all(events, function(func) { func(data); });
