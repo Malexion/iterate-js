@@ -909,22 +909,30 @@
         each: function(func) {
             __.all(this, func);
         },
-        toArray: function() {
-            var ret = [];
+        toArray: function(value) {
+            var ret = [],
+                value = value ? value : function(x, y) { return x; };
             __.all(this, function (x, y) {
-                ret[y] = x;
+                ret.push(value(x, y));
             });
             return ret;
         },
-        toList: function() {
-            return new List(this.toArray());
-        },
-        toDictionary: function() {
-            var dict = new Dictionary();
+        toDictionary: function(key, value) {
+            var dict = new Dictionary(),
+                key = key ? key : function(x, y) { return y; },
+                value = value ? value : function(x, y) { return x; };
             this.each(function(x, y) {
-                dict.add(y, x);
+                dict.add(key(x, y), value(x, y));
             });
             return dict;
+        },
+        toHashSet: function(value) {
+            var ret = new HashSet(),
+                value = value ? value : function(x, y) { return x; };
+            __.all(this, function(x, y) {
+                ret.add(value(x, y));
+            });
+            return ret;
         }
     });
 
@@ -951,6 +959,26 @@
             delete this[key];
         }
     }, Enumerable);
+
+    var HashSet = __.class(function() {
+        Enumerable.call(this);
+    }, {
+        add: function(value) {
+            this[value] = true;
+        },
+        clear: function() {
+            var self = this;
+            __.all(self, function (x, y) {
+                return self.remove(y);
+            });
+        },
+        contains: function(value) {
+            return Boolean(this[value]);
+        },
+        remove: function(value) {
+            delete this[value];
+        }
+    }, Enumerable);
     
     __.fuse(__.lib, {
         ConditionChain: ConditionChain,
@@ -966,7 +994,8 @@
         StopWatch: StopWatch,
         ArrayExt: ArrayExt,
         Enumerable: Enumerable,
-        Dictionary: Dictionary
+        Dictionary: Dictionary,
+        HashSet: HashSet
     });
 
     if( typeof module !== 'undefined' )
