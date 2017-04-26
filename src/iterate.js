@@ -3,12 +3,8 @@
 (function() {
     var __ = require('iterate-js-lite');
 
-    __.flow = function (obj) {
-        /// <summary> Returns a ConditionChain object with additional function and operations based on the type of object passed in.</summary>
-        /// <param type="Value" name="obj">Value to be checked and evaluated.</param>
-        /// <returns type="ConditionChain">A chain object, which contains many different functions, to get the boolean result simply call [chain].result. For more see the ConditionChain class.</returns>
-
-        return new ConditionChain({ initialValue: obj, value: obj });
+    __.chain = function () {
+        return new Chain();
     };
     __.render = {
         blend: function (c0, c1, p) {
@@ -26,6 +22,18 @@
                 G2 = t >> 8 & 0x00FF,
                 B2 = t & 0x0000FF;
             return "#" + (0x1000000 + (Math.round((R2 - R1) * p) + R1) * 0x10000 + (Math.round((G2 - G1) * p) + G1) * 0x100 + (Math.round((B2 - B1) * p) + B1)).toString(16).slice(1);
+        },
+        hexToRGBL: function(hex) {
+            var color = { red: 0, green: 0, blue: 0, luminosity: 0 },
+                base = hex.toString().replace('#', ''),
+                rgb = parseInt(base, 16);
+
+            color.red = (rgb >> 16) & 0xff;
+            color.green = (rgb >> 8) & 0xff;
+            color.blue = (rgb >> 0) & 0xff;
+            color.luminosity = 0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue;
+
+            return color;
         },
         bytesToImageSrc: function (bytes, type) {
             // el.src = __.render.bytesToImage( [ byteArrayFromServer ].join('') );
@@ -85,235 +93,229 @@
         }
     });
 
-    // [Testing] Chaining Conditions/Actions by a boolean evaluation
-    var ConditionChain = __.class(function (value) {
-        this.details = {
-            initialValue: value,
-            value: value,
-            status: true
-        };
-        if(__.is.object(value))
-            __.fuse(this.details, value);
+    // Object type description
+    var Describe = __.class(function(value) {
+        this.isObject = false;
+        this.isArray = false;
+        this.isFunction = false;
+        this.isString = false;
+        this.isNumber = false;
+        this.isBoolean = false;
+        this.isDate = false;
+        this.isArguments = false;
+        this.isNull = false;
+        this.isUndefined = false;
+        this.isNaN = false;
+        this.isRegExp = false;
+        this.read(value);
     }, {
-        result: { get: function() { return this.details.status; } },
-        all: function (func) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
-                __.all(this.details.value, func);
-            return this;
+        isIterable: { get: function() { return this.isArray || this.isObject || this.isNumber || this.isString || this.isArguments } },
+        isSameType: function(target) { return __.is.sameType(this.value, target); },
+        read: function(value) {
+            this.initial = value;
+            this.value = value;
         },
-        append: function (value) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array) 
-                this.details.value.push(value);
-            else if (type == __.types.string && __.is.string(value)) 
-                this.details.value += value;
-            return this;
-        },
-        appendTo: function (value) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array) 
-                this.details.value.unshift(value);
-            else if (type == __.types.string && __.is.string(value)) 
-                this.details.value = value + this.details.value;
-            return this;
-        },
-        average: function (func) {
-            if (__.is.array(this.details.value)) 
-                this.details.value = __.math.average(this.details.value, func);
-            return this;
-        },
-        contains: function (func) {
-            if (this.details.status) {
-                var type = __.getType(this.details.value);
-                if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
-                    this.details.status = __.contains(this.details.value, func);
+        value: {
+            get: function() {
+                return this._value;
+            },
+            set: function(value) {
+                var self = this,
+                    status = false,
+                    phrase = '';
+                self._value = value;
+                __.all(__.types, function(typeString, key) {
+                    status = false;
+                    phrase = typeString;
+                    if(key == 'nan') {
+                        phrase = 'NaN';
+                        status = __.is.nan(value);
+                    } else if(key == 'obj') {
+                        status = __.is.object(value);
+                    } else if(key == 'integer') {
+                        status = __.is.number(value);
+                    } else {
+                        status = __.is[key](value);
+                    }
+                    self['is' + phrase] = status;
+                });
             }
+        }
+    });
+
+    // Chain of function actions all executed on a value with myChain.execute('some value');
+    var Chain = __.class(function() {
+        this.actions = [];
+        this.data = new Describe();
+    }, {
+        action: function(func) {
+            this.actions.push(func.bind(this));
             return this;
         },
-        count: function (func) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
-                this.details.value = __.count(this.details.value);
-            return this;
+        all: function(func) {
+            return this.action(function(data) {
+                if(data.isIterable)
+                    __.all(data.value, func); 
+            });
+        },
+        append: function(value) {
+            return this.action(function(data) {
+                if(data.isArray)
+                    data.value.push(value);
+                else if(data.isString)
+                    data.value += value;
+            });
+        },
+        average: function(func) {
+            return this.action(function(data) {
+                if(data.isIterable)
+                    data.value = __.math.average(data.value, func);
+            });
+        },
+        contains: function(func) {
+            return this.action(function(data) {
+                if(data.isIterable)
+                    data.value = __.contains(data.value, func);
+            });
+        },
+        count: function(func) {
+            return this.action(function(data) {
+                if(data.isIterable)
+                    data.value = __.count(data.value, func);
+            });
+        },
+        default: function(def) {
+            return this.action(function(data) {
+                if(!data.isSet)
+                    data.value = def;
+            });
         },
         distinct: function(func) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.distinct(this.details.value, func);
-            return this;
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.distinct(data.value, func);
+            });
         },
-        equals: function (value) {
-            if (this.details.status) 
-                this.details.status = (this.details.value == value);
-            return this;
+        else: function(condition, action) {
+            return this.action(function(data) {
+                if(!condition)
+                    action(data);
+            });
         },
-        equalsExplicit: function (value) {
-            if (this.details.status) 
-                this.details.status = (this.details.value === value);
-            return this;
+        equals: function(value) {
+            return this.action(function(data) {
+                data.value = data.value == value;
+            });
         },
-        evaluate: function (condition) {
-            if (this.details.status && __.is.function(condition)) 
-                condition(this.details);
-            return this;
+        execute: function(value) {
+            var self = this;
+            self.data.read(value);
+            __.all(self.actions, function(action, idx, event) {
+                action(self.data, idx, event);
+            });
+            return self.data;
         },
-        filter: function (func) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.filter(this.details.value, func);
-            return this;
+        filter: function(func) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.filter(data.value, func);
+            });
         },
-        first: function (options) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.first(this.details.value, options);
-            return this;
+        first: function(options) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.first(data.value, options);
+            });
         },
-        prop: function (propChain) {
-            this.details.value = __.prop(this.details.value, propChain);
-            return this;
+        group: function(func) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.group(data.value, func);
+            });
         },
-        group: function (func) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.group(this.details.value, func);
-            return this;
+        last: function(options) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.last(data.value, options);
+            });
         },
-        then: function (func) {
-            if (this.details.status) 
-                func(this.details);
-            return this;
-        },
-        else: function (func) {
-            if (!this.details.status) 
-                func(this.details);
-            return this;
+        if: function(condition, action) {
+            return this.action(function(data) {
+                if(condition)
+                    action(data);
+            });
         },
         intersect: function(obj, func) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.intersect(this.details.value, obj, func);
-            return this;
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.intersect(data.value, obj, func);
+            });
         },
-        isDefined: function () {
-            if (this.details.status) 
-                this.details.status = __.i.defaultConditions(this.details.value);
-            return this;
+        is: function(value) {
+            return this.action(function(data) {
+                data.value = data.value === value;
+            });
         },
-        isSameType: function (type) {
-            this.details.status = __.is.sameType(this.details.value, type);
-            return this;
+        map: function(func) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.map(data.value, func);
+            });
         },
-        isSet: function () {
-            if (this.details.status) 
-                this.details.status = __.i.setConditions(this.details.value);
-            return this;
+        max: function(func) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.math.max(data.value, func);
+            });
         },
-        isType: function (type) {
-            this.details.status = __.getType(this.details.value) == type;
-            return this;
+        median: function(func) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.math.median(data.value, func);
+            });
         },
-        isArgs: function() {
-            this.details.status = __.is.args(this.details.value);
-            return this;
+        min: function(func) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.math.min(data.value, func);
+            });
         },
-        isArray: function() {
-            this.details.status = __.is.array(this.details.value);
-            return this;
+        preappend: function(value) {
+            return this.action(function(data) {
+                if(data.isArray)
+                    data.value.unshift(value);
+                else if(data.isString)
+                    data.value = value + data.value;
+            });
         },
-        isBoolean: function() {
-            this.details.status = __.is.bool(this.details.value);
-            return this;
+        prop: function(path, value) {
+            return this.action(function(data) {
+                if(data.isSet) {
+                    if(__.is.set(value))
+                        __.prop(data.value, path, value);
+                    else
+                        data.value = __.prop(data.value, path);
+                }
+            });
         },
-        isDate: function() {
-            this.details.status = __.is.date(this.details.value);
-            return this;
+        search: function(func) {
+            return this.action(function(data) {
+                if(data.isIterable)
+                    data.value = __.search(data.value, func);
+            });
         },
-        isFunction: function() {
-            this.details.status = __.is.function(this.details.value);
-            return this;
+        sort: function(options) {
+            return this.action(function(data) {
+                if(data.isArray)
+                    data.value = __.sort(data.value, options);
+            });
         },
-        isNull: function() {
-            this.details.status = __.is.null(this.details.value);
-            return this;
+        sum: function(func) {
+            return this.action(function(data) {
+                if(data.isArray || data.isObject)
+                    data.value = __.math.sum(data.value, func);
+            });
         },
-        isNaN: function() {
-            this.details.status = __.is.nan(this.details.value);
-            return this;
-        },
-        isNumber: function() {
-            this.details.status = __.is.number(this.details.value);
-            return this;
-        },
-        isObject: function() {
-            this.details.status = __.is.object(this.details.value);
-            return this;
-        },
-        isString: function() {
-            this.details.status = __.is.string(this.details.value);
-            return this;
-        },
-        isUndefined: function() {
-            this.details.status = __.is.undefined(this.details.value);
-            return this;
-        },
-        last: function (options) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.last(this.details.value, options);
-            return this;
-        },
-        map: function (func, options) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.map(this.details.value, func, options);
-            return this;
-        },
-        max: function (func) {
-            if (__.is.array(this.details.value)) 
-                this.details.value = __.math.max(this.details.value, func);
-            return this;
-        },
-        median: function (func) {
-            if (__.is.array(this.details.value)) 
-                this.details.value = __.math.max(this.details.value, func);
-            return this;
-        },
-        min: function (func) {
-            if (__.is.array(this.details.value)) 
-                this.details.value = __.math.min(this.details.value, func);
-            return this;
-        },
-        search: function (func, options) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object || type == __.types.args || type == __.types.string) 
-                this.details.value = __.search(this.details.value, func, options);
-            return this;
-        },
-        sort: function (options) {
-            var type = __.getType(this.details.value);
-            if (type == __.types.array || type == __.types.object) 
-                this.details.value = __.sort(this.details.value, options);
-            return this;
-        },
-        sum: function (func) {
-            if (__.is.array(this.details.value)) 
-                this.details.value = __.math.sum(this.details.value, func);
-            return this;
-        },
-        value: function (def) {
-            if (!this.details.status && def != undefined) 
-                return def;
-            return this.details.value;
-        },
-        update: function (defaultObj) {
-            if (this.details.status) 
-                this.details.value = __.fuse(defaultObj, this.details.value);
-            else 
-                this.details.value = defaultObj;
-            return this;
-        }
     });
 
     // Base for creating a string parser
@@ -564,7 +566,7 @@
                     this.hooks[eventName] = __.remove(this.hooks[eventName], func);
             } else {
                 var self = this;
-                __.all(self, function(func, key) { delete self.hooks[key]; });
+                __.all(self.hooks, function(func, key) { delete self.hooks[key]; });
             }
         },
         trigger: function(name, data) {
@@ -650,154 +652,227 @@
         }
     });
 
-    // Experimental Interface for aurelia binding a more controlled array: this.manager = new __.lib.ArrayManager();  <div repeat.for="item of manager.array"></div>
-    var ArrayManager = __.class(function(options) {
+    // Managed Model Collection
+    var Collection = __.class(function(options) {
+        __.lib.Updatable.call(this);
         var self = this;
         self.array = [];
-        self.config = __.options({
+        self.config = new Config({
             array: [],
+            model: null,
             multiselect: false,
             selection: null,
+            eval: undefined,
             map: undefined,
             filter: undefined,
             sort: undefined,
-            debounce: 50
-        }, options);
-
-        self.filters = {
-            limit: function(limit) {
-                var target = limit;
-                return function(x, y, z) {
-                    if(z.count == undefined)
-                        z.count = 0;
-                    z.count++;
-                    if(z.count == target)
+            onRefresh: () => { }
+        });
+        self.maps = {
+            range: (start, end) => {
+                var idxStart = start,
+                    idxEnd = end;
+                return function (x, y, z) {
+                    if (y < idxStart)
+                        z.skip = true;
+                    if (y >= idxEnd)
                         z.skip = z.stop = true;
                     return x;
                 };
             },
-            selected: function() {
-                return function(x, y, z) {
-                    if(!x.selected)
+            limit: (limit) => {
+                var target = limit;
+                return function (x, y, z) {
+                    if (y >= target)
+                        z.skip = z.stop = true;
+                    return x;
+                };
+            },
+            selected: () => {
+                return function (x, y, z) {
+                    if (!x.selected)
                         z.skip = true;
                     return x;
                 }
             },
-            hidden: function() {
-                return function(x, y, z) {
-                    if(x.hidden)
+            hidden: () => {
+                return function (x, y, z) {
+                    if (x.hidden)
                         z.skip = true;
                     return x;
                 }
             }
         };
 
-        var refresh = () => {
-            var temp = self.config.array;
-            if(__.is.set(self.config.sort))
-                temp = __.sort(temp, self.config.sort);
-            if(__.is.set(self.config.filter))
-                temp = __.filter(temp, self.config.filter);
-            if(__.is.set(self.config.map))
-                temp = __.map(temp, self.config.map);
-            self.array = temp;
-        };
+        self.refresh = __.debounce(() => {
+            var base = self.config.array;
+            if (__.is.set(self.config.filter))
+                base = __.filter(base, self.config.filter);
+            if (__.is.set(self.config.sort))
+                base = __.sort(base, self.config.sort);
+            if (__.is.set(self.config.map))
+                base = __.map(base, self.config.map);
+            if (__.is.set(self.config.eval))
+                base = __.all(base, self.config.eval);
+            self.array = base;
+            self.config.onRefresh(self);
+            return self;
+        }, 50);
 
-        self.refresh = self.config.debounce == 0 ? refresh : __.debounce(refresh, self.config.debounce);
-        self.refresh();
+        self.update(options);
     }, {
         add: function(item) {
-            if(__.is.array(item))
+            if (__.is.array(item))
                 this.config.array = this.config.array.slice().concat(item);
             else
                 this.config.array.push(item);
             this.refresh();
+            return this;
         },
         addAt: function(item, index) {
-            if(__.is.array(item))
-                Array.prototype.splice.apply(this.config.array, [ index, 0 ].concat(item));
+            if (__.is.array(item))
+                Array.prototype.splice.apply(this.config.array, [index, 0].concat(item));
             else
                 this.config.array.splice(index, 0, item);
             this.refresh();
+            return this;
+        },
+        addNew: function(options) {
+            var self = this;
+            if (__.is.array(options))
+                __.all(options, x => self.addNew(x));
+            else {
+                if (__.is.object(self.config.model))
+                    self.add(self.config.model.create(options));
+                else if (__.is.function(self.config.model))
+                    self.add(new self.config.model(options));
+            }
+            return this;
+        },
+        at: function(index) {
+            return this.config.array[index];
+        },
+        chain: {
+            get: function() {
+                return __.chain(this.config.array);
+            }
         },
         clear: function() {
             this.array = [];
             this.config.array = [];
+            this.refresh();
+            return this;
         },
         contains: function(func) {
-            if(__.is.function(func))
-                return __.contains(this.array.slice(), func);
-            return false;
+            return __.contains(this.config.array, func);
         },
-        count: { 
-            get: function() { 
-                return this.array.length; 
-            } 
+        count: {
+            get: function() {
+                return this.config.array.length;
+            }
+        },
+        each: function(func) {
+            __.all(this.config.array);
+        },
+        eval: function(func) {
+            if (__.is.function(func))
+                this.config.eval = func;
+            else
+                this.config.eval = undefined;
+            this.refresh();
+            return this;
         },
         filter: function(func) {
-            if(__.is.function(func))
+            if (__.is.function(func))
                 this.config.filter = func;
             else
                 this.config.filter = undefined;
             this.refresh();
+            return this;
+        },
+        first: {
+            get: function() {
+                return this.array[0];
+            }
+        },
+        index: function(key, value) {
+            return __.index(this.config.array, key, value);
         },
         indexOf: function(item) {
-            return this.array.indexOf(item);
+            return this.config.array.indexOf(item);
+        },
+        last: {
+            get: function() {
+                return this.array[this.array.length - 1];
+            }
         },
         map: function(func) {
-            if(__.is.function(func))
+            if (__.is.function(func))
                 this.config.map = func;
             else
                 this.config.map = undefined;
             this.refresh();
+            return this;
+        },
+        move: function(index1, index2) {
+            this.config.array.splice(index2, 0, this.config.array.splice(index1, 1)[0]);
+            this.refresh();
+            return this;
         },
         remove: function(item) {
             var idx = this.indexOf(item);
-            if(idx > -1)
+            if (idx > -1)
                 this.removeAt(idx);
+            return this;
         },
         removeAt: function(index) {
-            this.config.array = this.config.array.slice().splice(index, 1);
+            this.config.array.splice(index, 1);
             this.refresh();
+            return this;
         },
         search: function(func) {
-            return __.search(this.array.slice(), func);
+            return __.search(this.config.array, func);
         },
         sort: function(options) {
-            if(__.is.set(options))
+            if (__.is.set(options))
                 this.config.sort = options;
             else
                 this.config.sort = undefined;
             this.refresh();
+            return this;
         },
         select: function(items) {
-            if(!this.multiselect)
-                __.all(this.array.slice(), x => x.selected = false);
+            if (!this.multiselect)
+                this.toggle(this.config.array, 'selected', false);
 
-            if(__.is.array(items))
-                __.all(items, x => x.selected = true);
-            else if(__.is.object(items))
-                items.selected = true;
+            this.toggle(items, 'selected', true);
 
-            this.config.selection = __[this.multiselect ? 'filter':'search'](this.array.slice(), x => x.selected);
+            this.config.selection = __[this.multiselect ? 'filter' : 'search'](this.config.array, x => x.selected);
+            return this;
         },
         unselect: function(items) {
-            if(!this.multiselect)
-                __.all(this.array.slice(), x => x.selected = false);
+            if (!this.multiselect)
+                this.toggle(this.config.array, 'selected', false);
 
-            if(__.is.array(items))
-                __.all(items, x => x.selected = false);
-            else if(__.is.object(items))
-                items.selected = false;
+            this.toggle(items, 'selected', false);
 
-            this.config.selection = __[this.multiselect ? 'filter':'search'](this.array.slice(), x => x.selected);
+            this.config.selection = __[this.multiselect ? 'filter' : 'search'](this.config.array, x => x.selected);
+            return this;
+        },
+        toggle: function(items, property, state) {
+            var prop = property ? property : 'hidden';
+            if (__.is.array(items))
+                __.all(items, x => x[prop] = (state != undefined ? state : !x[prop]));
+            else if (__.is.object(items))
+                items[prop] = (state != undefined ? state : !items[prop]);
         },
         update: function(options) {
             if(__.is.array(options))
                 this.config.array = options;
             else if(__.is.object(options))
-                __.fuse(this.config, options);
+                this.config.update(options);
             this.refresh();
+            return this;
         }
     }, __.lib.Updatable);
 
@@ -981,16 +1056,17 @@
     }, Enumerable);
     
     __.fuse(__.lib, {
-        ConditionChain: ConditionChain,
+        Describe: Describe,
+        Chain: Chain,
         StringParser: StringParser,
         StyleParser: StyleParser,
         AttrParser: AttrParser,
         PrivateStore: PrivateStore,
         Config: Config,
         Model: Model,
+        Collection: Collection,
         EventManager: EventManager,
         ViewManager: ViewManager,
-        ArrayManager: ArrayManager,
         StopWatch: StopWatch,
         ArrayExt: ArrayExt,
         Enumerable: Enumerable,
